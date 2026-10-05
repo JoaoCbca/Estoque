@@ -1,0 +1,71 @@
+/* ==========================================================================
+   Controle de Estoque Colaborativo - Estilos Auxiliares (style.css)
+   ========================================================================== */
+
+/* Configuração de fonte padrão e suavização */
+body {
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background-color: #0f1115;
+    color: #f1f5f9;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Customização da Barra de Rolagem */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #1a1d24;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #dc2626;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #b91c1c;
+}
+
+/* Animações e Transições Suaves para Modais */
+.modal-overlay {
+    backdrop-filter: blur(4px);
+    transition: opacity 0.3s ease;
+}
+
+/* Efeitos visuais para os cards do Dashboard */
+.stat-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    background-color: #161920;
+    border: 1px solid #262b36;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(220, 38, 38, 0.1), 0 4px 6px -4px rgba(220, 38, 38, 0.1);
+    border-color: #dc2626;
+}
+
+/* Ajustes de foco para acessibilidade */
+input:focus, select:focus, textarea:focus, button:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.25);
+    border-color: #dc2626;
+}
+
+/* Linhas de tabelas responsivas */
+table {
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+th {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background-color: #161920;
+    color: #f1f5f9;
+}
