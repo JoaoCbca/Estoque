@@ -87,7 +87,7 @@
                     <i class="fa-solid fa-boxes-stacked text-xl"></i>
                 </div>
                 <div>
-                    <h1 class="text-xl font-bold text-gray-900">Estoque Colaborativo</h1>
+                    <h1 class="text-xl font-bold text-gray-900">Estoque</h1>
                     <p class="text-xs text-gray-500">Controle de Entradas e Baixas</p>
                 </div>
             </div>
@@ -113,35 +113,42 @@
         
         <!-- Cards de Estatísticas -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 flex items-center justify-between">
-                <div>
-                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Total de Itens</p>
-                    <h3 id="total-items" class="text-2xl font-bold text-gray-900 mt-1">0</h3>
-                </div>
-                <div class="bg-blue-50 text-blue-600 p-3 rounded-lg"><i class="fa-solid fa-box text-lg"></i></div>
-            </div>
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 flex items-center justify-between">
-                <div>
-                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Valor em Estoque</p>
-                    <h3 id="total-value" class="text-2xl font-bold text-gray-900 mt-1">R$ 0,00</h3>
-                </div>
-                <div class="bg-green-50 text-green-600 p-3 rounded-lg"><i class="fa-solid fa-wallet text-lg"></i></div>
-            </div>
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 flex items-center justify-between">
-                <div>
-                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Estoque Baixo</p>
-                    <h3 id="low-stock-count" class="text-2xl font-bold text-red-600 mt-1">0</h3>
-                </div>
-                <div class="bg-red-50 text-red-600 p-3 rounded-lg"><i class="fa-solid fa-triangle-exclamation text-lg"></i></div>
-            </div>
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 flex items-center justify-between">
-                <div>
-                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Movimentações Hoje</p>
-                    <h3 id="today-movements" class="text-2xl font-bold text-gray-900 mt-1">0</h3>
-                </div>
-                <div class="bg-amber-50 text-amber-600 p-3 rounded-lg"><i class="fa-solid fa-clock-rotate-left text-lg"></i></div>
-            </div>
+    <!-- Card 1 -->
+    <div class="bg-black p-6 rounded-xl shadow-sm border border-red-900/50 flex items-center justify-between">
+        <div>
+            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Total de Itens</p>
+            <h3 id="total-items" class="text-2xl font-bold text-white mt-1">0</h3>
         </div>
+        <div class="bg-red-950/60 text-red-500 p-3 rounded-lg border border-red-900/30"><i class="fa-solid fa-box text-lg"></i></div>
+    </div>
+
+    <!-- Card 2 -->
+    <div class="bg-black p-6 rounded-xl shadow-sm border border-red-900/50 flex items-center justify-between">
+        <div>
+            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Valor em Estoque</p>
+            <h3 id="total-value" class="text-2xl font-bold text-white mt-1">R$ 0,00</h3>
+        </div>
+        <div class="bg-red-950/60 text-red-500 p-3 rounded-lg border border-red-900/30"><i class="fa-solid fa-wallet text-lg"></i></div>
+    </div>
+
+    <!-- Card 3 -->
+    <div class="bg-black p-6 rounded-xl shadow-sm border border-red-900/50 flex items-center justify-between">
+        <div>
+            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Estoque Baixo</p>
+            <h3 id="low-stock-count" class="text-2xl font-bold text-red-500 mt-1">0</h3>
+        </div>
+        <div class="bg-red-950/60 text-red-500 p-3 rounded-lg border border-red-900/30"><i class="fa-solid fa-triangle-exclamation text-lg"></i></div>
+    </div>
+
+    <!-- Card 4 -->
+    <div class="bg-black p-6 rounded-xl shadow-sm border border-red-900/50 flex items-center justify-between">
+        <div>
+            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Movimentações Hoje</p>
+            <h3 id="today-movements" class="text-2xl font-bold text-white mt-1">0</h3>
+        </div>
+        <div class="bg-red-950/60 text-red-500 p-3 rounded-lg border border-red-900/30"><i class="fa-solid fa-clock-rotate-left text-lg"></i></div>
+    </div>
+</div>
 
         <!-- Seção de Produtos -->
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
@@ -162,25 +169,23 @@
             </div>
 
             <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Produto / SKU</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Categoria</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Preço Un.</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Qtd Atual</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Movimentar</th>
-                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody id="products-table-body" class="bg-white divide-y divide-gray-200">
-                        <!-- Preenchido via JS -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
+    <table class="min-w-full divide-y divide-red-950">
+        <thead class="bg-black">
+            <tr>
+                <th class="px-6 py-3 text-left text-xs font-semibold text-red-500 uppercase tracking-wider">Produto / SKU</th>
+                <th class="px-6 py-3 text-left text-xs font-semibold text-red-500 uppercase tracking-wider">Categoria</th>
+                <th class="px-6 py-3 text-left text-xs font-semibold text-red-500 uppercase tracking-wider">Preço Un.</th>
+                <th class="px-6 py-3 text-left text-xs font-semibold text-red-500 uppercase tracking-wider">Qtd Atual</th>
+                <th class="px-6 py-3 text-left text-xs font-semibold text-red-500 uppercase tracking-wider">Total</th>
+                <th class="px-6 py-3 text-left text-xs font-semibold text-red-500 uppercase tracking-wider">Movimentar</th>
+                <th class="px-6 py-3 text-right text-xs font-semibold text-red-500 uppercase tracking-wider">Ações</th>
+            </tr>
+        </thead>
+        <tbody id="products-table-body" class="bg-black divide-y divide-red-950/40 text-gray-200">
+            <!-- Preenchido via JS -->
+        </tbody>
+    </table>
+</div>
         <!-- Seção de Histórico de Movimentações -->
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
             <div class="p-6 border-b border-gray-200">
