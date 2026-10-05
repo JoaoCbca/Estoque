@@ -4,487 +4,302 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Controle de Estoque</title>
-    <!-- Tailwind CSS via CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome para Ícones -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { font-family: 'Inter', system-ui, sans-serif; background-color: #f8fafc; color: #1e293b; }
-        .modal-overlay { backdrop-filter: blur(4px); }
+        :root {
+            --color-primary: #dc2626;
+            --color-primary-dark: #b91c1c;
+            --color-dark: #000000;
+            --color-light: #ffffff;
+        }
+        .bg-primary { background-color: var(--color-primary); }
+        .bg-primary-dark { background-color: var(--color-primary-dark); }
+        .text-primary { color: var(--color-primary); }
+        .border-primary { border-color: var(--color-primary); }
+        .focus\:ring-primary:focus { --tw-ring-color: var(--color-primary); }
+        .focus\:border-primary:focus { border-color: var(--color-primary); }
     </style>
 </head>
-<body class="min-h-screen flex flex-col">
+<body class="bg-gray-50 text-gray-900 font-sans antialiased">
 
-    <!-- Modal de Autenticação (Apenas Login Restrito) -->
-    <div id="auth-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 modal-overlay z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 transform transition-all">
-            <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
-                <i class="fa-solid fa-lock"></i>
-            </div>
-            
-            <h2 class="text-2xl font-bold text-gray-900 text-center mb-2">Acesso Restrito</h2>
-            <p class="text-gray-600 text-sm text-center mb-6">Informe seu ID de 8 dígitos e senha pré-cadastrados para entrar.</p>
-
-            <form id="auth-form" class="space-y-4">
-                <div>
-                    <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">ID de Acesso (8 Números)</label>
-                    <input type="text" id="auth-id-input" placeholder="Ex: 12345678" maxlength="8" pattern="\d{8}" title="Informe exatamente 8 números" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm font-mono tracking-widest text-center">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Senha</label>
-                    <input type="password" id="auth-password" placeholder="••••••••" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm">
-                </div>
-                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg shadow transition-colors mt-2">
-                    Entrar no Sistema
-                </button>
-            </form>
-
-            <!-- Botão para abrir a Modal de Alteração/Cadastro de Senha -->
-            <div class="mt-4 text-center">
-                <button type="button" id="open-password-modal" class="text-xs text-blue-600 hover:text-blue-800 font-medium">
-                    Alterar / Cadastrar Senha
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal de Alteração / Cadastro de Senha -->
-    <div id="password-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 modal-overlay z-50 hidden items-center justify-center p-4">
-        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 transform transition-all">
-            <div class="w-16 h-16 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
-                <i class="fa-solid fa-key"></i>
-            </div>
-            <h3 class="text-2xl font-bold text-gray-900 text-center mb-2">Alterar / Cadastrar Senha</h3>
-            <p class="text-gray-600 text-sm text-center mb-6">Informe seu ID, sua senha atual (ou temporária) e a nova senha desejada.</p>
-            
-            <form id="password-change-form" class="space-y-4">
-                <div>
-                    <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">ID de Acesso</label>
-                    <input type="text" id="change-pass-userid" maxlength="8" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none text-sm font-mono tracking-widest text-center" placeholder="Seu ID cadastrado">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Senha Atual</label>
-                    <input type="password" id="change-pass-old" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none text-sm" placeholder="Senha atual">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Nova Senha</label>
-                    <input type="password" id="change-pass-new" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none text-sm" placeholder="Nova senha">
-                </div>
-                <div class="flex space-x-3 pt-2">
-                    <button type="button" id="cancel-pass-btn" class="w-1/2 bg-gray-100 text-gray-700 font-semibold py-3 rounded-lg hover:bg-gray-200 transition-colors">Cancelar</button>
-                    <button type="submit" class="w-1/2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-lg shadow transition-colors">Salvar Senha</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Cabeçalho Principal -->
-    <header class="bg-white shadow-sm border-b border-gray-200">
-        <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
-            <div class="flex items-center space-x-3">
-                <div class="bg-blue-600 text-white p-2.5 rounded-xl shadow">
-                    <i class="fa-solid fa-boxes-stacked text-xl"></i>
-                </div>
-                <div>
-                    <h1 class="text-xl font-bold text-gray-900">Estoque Colaborativo</h1>
-                    <p class="text-xs text-gray-500">Controle de Entradas e Baixas</p>
-                </div>
-            </div>
-            <div class="flex items-center space-x-4">
-                <div class="bg-gray-100 px-4 py-2 rounded-lg flex items-center space-x-2 text-sm text-gray-700">
-                    <i class="fa-solid fa-user text-blue-600"></i>
-                    <span>Usuário: <strong id="current-user" class="text-gray-900">-</strong></span>
-                    <button id="logout-btn" class="text-xs text-red-600 hover:underline ml-3 font-medium">(Sair)</button>
-                </div>
-                <button id="export-data" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg text-sm font-medium transition-colors" title="Exportar Dados">
-                    <i class="fa-solid fa-download mr-1"></i> Exportar
-                </button>
-                <button id="import-data" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg text-sm font-medium transition-colors" title="Importar Dados">
-                    <i class="fa-solid fa-upload mr-1"></i> Importar
-                </button>
-                <input type="file" id="import-file" class="hidden" accept=".json">
-            </div>
-        </div>
-    </header>
-
-    <!-- Conteúdo Principal -->
-    <main class="max-w-7xl mx-auto px-4 py-8 flex-grow w-full space-y-8">
-        
-        <!-- Cards de Estatísticas -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 flex items-center justify-between">
-                <div>
-                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Total de Itens</p>
-                    <h3 id="total-items" class="text-2xl font-bold text-gray-900 mt-1">0</h3>
-                </div>
-                <div class="bg-blue-50 text-blue-600 p-3 rounded-lg"><i class="fa-solid fa-box text-lg"></i></div>
-            </div>
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 flex items-center justify-between">
-                <div>
-                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Valor em Estoque</p>
-                    <h3 id="total-value" class="text-2xl font-bold text-gray-900 mt-1">R$ 0,00</h3>
-                </div>
-                <div class="bg-green-50 text-green-600 p-3 rounded-lg"><i class="fa-solid fa-wallet text-lg"></i></div>
-            </div>
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 flex items-center justify-between">
-                <div>
-                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Estoque Baixo</p>
-                    <h3 id="low-stock-count" class="text-2xl font-bold text-red-600 mt-1">0</h3>
-                </div>
-                <div class="bg-red-50 text-red-600 p-3 rounded-lg"><i class="fa-solid fa-triangle-exclamation text-lg"></i></div>
-            </div>
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 flex items-center justify-between">
-                <div>
-                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Movimentações Hoje</p>
-                    <h3 id="today-movements" class="text-2xl font-bold text-gray-900 mt-1">0</h3>
-                </div>
-                <div class="bg-amber-50 text-amber-600 p-3 rounded-lg"><i class="fa-solid fa-clock-rotate-left text-lg"></i></div>
-            </div>
-        </div>
-
-        <!-- Seção de Produtos -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-            <div class="p-6 border-b border-gray-200 flex flex-col md:flex-row justify-between items-center gap-4">
-                <div class="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
-                    <div class="relative w-full sm:w-72">
-                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400"><i class="fa-solid fa-search"></i></span>
-                        <input type="text" id="search-input" placeholder="Buscar por nome ou SKU..." class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+    <div class="min-h-screen flex flex-col">
+        <!-- Header -->
+        <header class="bg-black text-white shadow-md border-b-4 border-red-600">
+            <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+                <div class="flex items-center space-x-3">
+                    <div class="bg-red-600 p-2 rounded-lg text-white">
+                        <i class="fa-solid fa-boxes-stacked text-xl"></i>
                     </div>
-                    <select id="category-filter" class="w-full sm:w-auto px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    <h1 class="text-xl font-bold tracking-wide">Controle de Estoque</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span id="user-info" class="text-sm text-gray-300">Carregando usuário...</span>
+                    <button id="exportDataBtn" class="bg-gray-800 hover:bg-gray-700 text-white text-xs px-3 py-1.5 rounded transition-colors" title="Exportar Dados JSON">
+                        <i class="fa-solid fa-download mr-1"></i> Exportar
+                    </button>
+                    <button id="importDataBtn" class="bg-red-600 hover:bg-red-700 text-white text-xs px-3 py-1.5 rounded transition-colors" title="Importar Dados JSON">
+                        <i class="fa-solid fa-upload mr-1"></i> Importar
+                    </button>
+                    <input type="file" id="importFileInput" class="hidden" accept=".json">
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="flex-grow max-w-7xl w-full mx-auto px-4 py-6 space-y-6">
+            
+            <!-- Cards de Estatísticas -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200 flex items-center justify-between">
+                    <div>
+                        <p class="text-xs text-gray-500 uppercase tracking-wider font-semibold">Total de Itens</p>
+                        <h3 id="totalItems" class="text-2xl font-bold text-black mt-1">0</h3>
+                    </div>
+                    <div class="p-3 bg-red-50 text-red-600 rounded-lg">
+                        <i class="fa-solid fa-cubes text-lg"></i>
+                    </div>
+                </div>
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200 flex items-center justify-between">
+                    <div>
+                        <p class="text-xs text-gray-500 uppercase tracking-wider font-semibold">Valor em Estoque</p>
+                        <h3 id="totalValue" class="text-2xl font-bold text-black mt-1">R$ 0,00</h3>
+                    </div>
+                    <div class="p-3 bg-red-50 text-red-600 rounded-lg">
+                        <i class="fa-solid fa-dollar-sign text-lg"></i>
+                    </div>
+                </div>
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200 flex items-center justify-between">
+                    <div>
+                        <p class="text-xs text-gray-500 uppercase tracking-wider font-semibold">Estoque Baixo</p>
+                        <h3 id="lowStockCount" class="text-2xl font-bold text-red-600 mt-1">0</h3>
+                    </div>
+                    <div class="p-3 bg-red-50 text-red-600 rounded-lg">
+                        <i class="fa-solid fa-triangle-exclamation text-lg"></i>
+                    </div>
+                </div>
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200 flex items-center justify-between">
+                    <div>
+                        <p class="text-xs text-gray-500 uppercase tracking-wider font-semibold">Movimentações Hoje</p>
+                        <h3 id="todayMovements" class="text-2xl font-bold text-black mt-1">0</h3>
+                    </div>
+                    <div class="p-3 bg-red-50 text-red-600 rounded-lg">
+                        <i class="fa-solid fa-clock-rotate-left text-lg"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Seção de Ações e Filtros -->
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 flex flex-col md:flex-row justify-between items-center gap-4">
+                <div class="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
+                    <div class="relative w-full sm:w-64">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
+                            <i class="fa-solid fa-search"></i>
+                        </span>
+                        <input type="text" id="searchInput" placeholder="Buscar por nome ou SKU..." class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600">
+                    </div>
+                    <select id="categoryFilter" class="w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600">
                         <option value="">Todas as Categorias</option>
                     </select>
                 </div>
-                <button id="new-product-btn" class="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg text-sm transition-colors flex items-center justify-center space-x-2">
+                <button id="newProductBtn" class="w-full md:w-auto bg-red-600 hover:bg-red-700 text-white font-medium px-4 py-2 rounded-lg text-sm transition-colors flex items-center justify-center space-x-2">
                     <i class="fa-solid fa-plus"></i>
                     <span>Novo Produto</span>
                 </button>
             </div>
 
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Produto / SKU</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Categoria</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Preço Un.</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Qtd Atual</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Movimentar</th>
-                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody id="products-table-body" class="bg-white divide-y divide-gray-200">
-                        <!-- Preenchido via JS -->
-                    </tbody>
-                </table>
+            <!-- Tabela de Produtos -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h2 class="text-base font-bold text-black">Produtos Cadastrados</h2>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Produto / SKU</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Categoria</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Preço Unit.</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Qtd. Atual</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Valor Total</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações Rápidas</th>
+                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Gerenciar</th>
+                            </tr>
+                        </thead>
+                        <tbody id="productsTableBody" class="bg-white divide-y divide-gray-200">
+                        </tbody>
+                    </table>
+                </div>
             </div>
-        </div>
 
-        <!-- Seção de Histórico de Movimentações -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-            <div class="p-6 border-b border-gray-200">
-                <h3 class="text-lg font-bold text-gray-900"><i class="fa-solid fa-history mr-2 text-blue-600"></i>Histórico de Movimentações (Entradas e Baixas)</h3>
-                <p class="text-xs text-gray-500 mt-0.5">Registro colaborativo de todas as alterações feitas pela equipe</p>
+            <!-- Histórico de Movimentações -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h2 class="text-base font-bold text-black">Histórico Recente de Movimentações</h2>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data / Hora</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Produto</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Motivo / Observação</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Usuário</th>
+                            </tr>
+                        </thead>
+                        <tbody id="movementsTableBody" class="bg-white divide-y divide-gray-200">
+                        </tbody>
+                    </table>
+                </div>
             </div>
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data / Hora</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Produto</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Justificativa / Observação</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Responsável</th>
-                        </tr>
-                    </thead>
-                    <tbody id="movements-table-body" class="bg-white divide-y divide-gray-200">
-                        <!-- Preenchido via JS -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </main>
 
-    <!-- Modal de Cadastro / Edição de Produto -->
-    <div id="product-modal" class="fixed inset-0 bg-gray-900 bg-opacity-50 modal-overlay z-40 hidden items-center justify-center p-4">
-        <div class="bg-white rounded-2xl shadow-xl max-w-lg w-full p-6">
-            <h3 id="modal-title" class="text-lg font-bold text-gray-900 mb-4">Novo Produto</h3>
-            <form id="product-form" class="space-y-4">
-                <input type="hidden" id="product-id">
+        </main>
+    </div>
+
+    <!-- Modal de Produto (Criar / Editar) -->
+    <div id="productModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-xl max-w-lg w-full p-6 space-y-4 border-t-4 border-red-600 shadow-xl">
+            <h3 id="modalTitle" class="text-lg font-bold text-black">Novo Produto</h3>
+            <form id="productForm" class="space-y-4">
+                <input type="hidden" id="productId">
                 <div>
-                    <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Nome do Produto</label>
-                    <input type="text" id="product-name" required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    <label class="block text-xs font-medium text-gray-700 uppercase mb-1">Nome do Produto</label>
+                    <input type="text" id="product-name" required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600">
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">SKU / Código</label>
-                        <input type="text" id="product-sku" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        <label class="block text-xs font-medium text-gray-700 uppercase mb-1">SKU / Código</label>
+                        <input type="text" id="product-sku" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600">
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Categoria</label>
-                        <input type="text" id="product-category" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Ex: Eletrônicos">
+                        <label class="block text-xs font-medium text-gray-700 uppercase mb-1">Categoria</label>
+                        <input type="text" id="product-category" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600">
                     </div>
                 </div>
                 <div class="grid grid-cols-3 gap-4">
                     <div>
-                        <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Preço Un. (R$)</label>
-                        <input type="number" step="0.01" min="0" id="product-price" required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        <label class="block text-xs font-medium text-gray-700 uppercase mb-1">Preço (R$)</label>
+                        <input type="number" step="0.01" min="0" id="product-price" required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600">
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Qtd Inicial</label>
-                        <input type="number" min="0" id="product-quantity" required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        <label class="block text-xs font-medium text-gray-700 uppercase mb-1">Qtd. Inicial</label>
+                        <input type="number" min="0" id="product-quantity" required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600">
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Estoque Mín.</label>
-                        <input type="number" min="0" id="product-min-stock" value="5" required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        <label class="block text-xs font-medium text-gray-700 uppercase mb-1">Estoque Mín.</label>
+                        <input type="number" min="0" id="product-min-stock" required value="5" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600">
                     </div>
                 </div>
                 <div class="flex justify-end space-x-3 pt-4 border-t border-gray-200">
-                    <button type="button" id="cancel-product-btn" class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">Cancelar</button>
-                    <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium shadow">Salvar Produto</button>
+                    <button type="button" id="cancelProductBtn" class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">Cancelar</button>
+                    <button type="submit" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium">Salvar</button>
                 </div>
             </form>
         </div>
     </div>
 
     <!-- Modal de Movimentação (Entrada / Baixa) -->
-    <div id="movement-modal" class="fixed inset-0 bg-gray-900 bg-opacity-50 modal-overlay z-40 hidden items-center justify-center p-4">
-        <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
-            <h3 id="movement-title" class="text-lg font-bold text-gray-900 mb-4">Movimentar Estoque</h3>
-            <form id="movement-form" class="space-y-4">
-                <input type="hidden" id="movement-product-id">
-                <input type="hidden" id="movement-type">
+    <div id="movementModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-xl max-w-md w-full p-6 space-y-4 border-t-4 border-red-600 shadow-xl">
+            <h3 id="movementTitle" class="text-lg font-bold text-black">Registrar Movimentação</h3>
+            <form id="movementForm" class="space-y-4">
+                <input type="hidden" id="movementProductId">
+                <input type="hidden" id="movementType">
                 <div>
-                    <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Quantidade</label>
-                    <input type="number" min="1" id="movement-quantity" required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none font-bold text-lg">
+                    <label class="block text-xs font-medium text-gray-700 uppercase mb-1">Quantidade</label>
+                    <input type="number" min="1" id="movementQuantity" required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600">
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Justificativa / Motivo</label>
-                    <textarea id="movement-reason" rows="3" placeholder="Ex: Venda para cliente X, Reposição de fornecedor, Uso interno..." required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"></textarea>
+                    <label class="block text-xs font-medium text-gray-700 uppercase mb-1">Motivo / Observação</label>
+                    <textarea id="movementReason" rows="3" required placeholder="Ex: Reposição de fornecedor, Venda direta, Avaria..." class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600"></textarea>
                 </div>
                 <div class="flex justify-end space-x-3 pt-4 border-t border-gray-200">
-                    <button type="button" id="cancel-movement-btn" class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">Cancelar</button>
-                    <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium shadow">Confirmar</button>
+                    <button type="button" id="cancelMovementBtn" class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">Cancelar</button>
+                    <button type="submit" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium">Confirmar</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Script JavaScript Completo -->
     <script>
-        let state = {
-            currentUser: JSON.parse(sessionStorage.getItem('estoque_current_user')) || null,
-            users: [],
+        const state = {
+            currentUser: { id: 'usr_1', name: 'Administrador', role: 'admin' },
             products: [],
             movements: []
         };
 
-        const authModal = document.getElementById('auth-modal');
-        const authForm = document.getElementById('auth-form');
-        const authIdInput = document.getElementById('auth-id-input');
-        const authPasswordInput = document.getElementById('auth-password');
+        const totalItemsEl = document.getElementById('totalItems');
+        const totalValueEl = document.getElementById('totalValue');
+        const lowStockCountEl = document.getElementById('lowStockCount');
+        const todayMovementsEl = document.getElementById('todayMovements');
+        const searchInput = document.getElementById('searchInput');
+        const categoryFilter = document.getElementById('categoryFilter');
+        const productsTableBody = document.getElementById('productsTableBody');
+        const movementsTableBody = document.getElementById('movementsTableBody');
+        const userInfoEl = document.getElementById('user-info');
+        
+        const productModal = document.getElementById('productModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const productForm = document.getElementById('productForm');
+        const productIdInput = document.getElementById('productId');
+        const newProductBtn = document.getElementById('newProductBtn');
+        const cancelProductBtn = document.getElementById('cancelProductBtn');
 
-        // Elementos da Modal de Senha
-        const passwordModal = document.getElementById('password-modal');
-        const openPasswordModalBtn = document.getElementById('open-password-modal');
-        const cancelPassBtn = document.getElementById('cancel-pass-btn');
-        const passwordChangeForm = document.getElementById('password-change-form');
+        const movementModal = document.getElementById('movementModal');
+        const movementTitle = document.getElementById('movementTitle');
+        const movementForm = document.getElementById('movementForm');
+        const movementProductId = document.getElementById('movementProductId');
+        const movementType = document.getElementById('movementType');
+        const movementQuantity = document.getElementById('movementQuantity');
+        const movementReason = document.getElementById('movementReason');
+        const cancelMovementBtn = document.getElementById('cancelMovementBtn');
 
-        const currentUserSpan = document.getElementById('current-user');
-        const logoutBtn = document.getElementById('logout-btn');
+        const exportDataBtn = document.getElementById('exportDataBtn');
+        const importDataBtn = document.getElementById('importDataBtn');
+        const importFileInput = document.getElementById('importFileInput');
 
-        const productModal = document.getElementById('product-modal');
-        const productForm = document.getElementById('product-form');
-        const modalTitle = document.getElementById('modal-title');
-        const productIdInput = document.getElementById('product-id');
-        const cancelProductBtn = document.getElementById('cancel-product-btn');
-        const newProductBtn = document.getElementById('new-product-btn');
-
-        const movementModal = document.getElementById('movement-modal');
-        const movementForm = document.getElementById('movement-form');
-        const movementTitle = document.getElementById('movement-title');
-        const movementProductId = document.getElementById('movement-product-id');
-        const movementType = document.getElementById('movement-type');
-        const movementQuantity = document.getElementById('movement-quantity');
-        const movementReason = document.getElementById('movement-reason');
-        const cancelMovementBtn = document.getElementById('cancel-movement-btn');
-
-        const searchInput = document.getElementById('search-input');
-        const categoryFilter = document.getElementById('category-filter');
-        const productsTableBody = document.getElementById('products-table-body');
-        const movementsTableBody = document.getElementById('movements-table-body');
-
-        const totalItemsEl = document.getElementById('total-items');
-        const totalValueEl = document.getElementById('total-value');
-        const lowStockCountEl = document.getElementById('low-stock-count');
-        const todayMovementsEl = document.getElementById('today-movements');
-
-        const exportDataBtn = document.getElementById('export-data');
-        const importDataBtn = document.getElementById('import-data');
-        const importFileInput = document.getElementById('import-file');
-
-        async function loadDataFromServer() {
-            try {
-                const response = await fetch('/api/data');
-                const data = await response.json();
-                
-                state.products = data.products || [];
-                state.movements = data.movements || [];
-                state.users = data.users || [];
-                
-                renderAll();
-            } catch (error) {
-                console.error("Erro ao carregar dados do servidor:", error);
-            }
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
         }
 
-        async function saveState() {
-            try {
-                const response = await fetch('/api/sync', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        user: state.currentUser,
-                        products: state.products,
-                        movements: state.movements
-                    })
-                });
-                const data = await response.json();
-                if (!response.ok) {
-                    alert(data.error || 'Erro ao sincronizar.');
-                }
-            } catch (error) {
-                console.error("Erro ao sincronizar com o servidor:", error);
-            }
-        }
-
-        window.addEventListener('DOMContentLoaded', () => {
-            loadDataFromServer().then(() => {
-                checkUserSession();
-            });
+        document.addEventListener('DOMContentLoaded', () => {
+            loadState();
+            userInfoEl.textContent = `${state.currentUser.name} (${state.currentUser.role})`;
+            renderAll();
             setupEventListeners();
-            
-            setInterval(loadDataFromServer, 5000);
         });
 
-        function escapeHtml(text) {
-            if (!text) return '';
-            return text
-                .toString()
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");
+        function loadState() {
+            const savedProducts = localStorage.getItem('estoque_products');
+            const savedMovements = localStorage.getItem('estoque_movements');
+            
+            if (savedProducts) {
+                try { state.products = JSON.parse(savedProducts); } catch(e) {}
+            } else {
+                state.products = [
+                    { id: 'prod_1', name: 'Camiseta Preta Básica', sku: 'CAM-001', category: 'Vestuário', price: 49.90, quantity: 25, min_stock: 5, updated_at: new Date().toISOString() },
+                    { id: 'prod_2', name: 'Tênis Esportivo Vermelho', sku: 'TEN-002', category: 'Calçados', price: 199.90, quantity: 4, min_stock: 5, updated_at: new Date().toISOString() }
+                ];
+            }
+
+            if (savedMovements) {
+                try { state.movements = JSON.parse(savedMovements); } catch(e) {}
+            }
         }
 
-        function checkUserSession() {
-            if (!state.currentUser) {
-                authModal.classList.remove('hidden');
-                authModal.classList.add('flex');
-            } else {
-                const roleLabel = state.currentUser.role === 'admin' ? 'Administrador' : 'Usuário Comum';
-                currentUserSpan.textContent = state.currentUser.name;
-                authModal.classList.add('hidden');
-                authModal.classList.remove('flex');
-            }
+        function saveState() {
+            localStorage.setItem('estoque_products', JSON.stringify(state.products));
+            localStorage.setItem('estoque_movements', JSON.stringify(state.movements));
         }
 
         function setupEventListeners() {
-            authForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const userId = authIdInput.value.trim();
-                const password = authPasswordInput.value;
-
-                if (!/^\d{8}$/.test(userId)) {
-                    alert('O ID de acesso deve conter exatamente 8 números.');
-                    return;
-                }
-
-                try {
-                    const response = await fetch('/api/auth', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ userId, password })
-                    });
-                    const data = await response.json();
-
-                    if (!response.ok) {
-                        alert(data.error || 'ID ou senha incorretos.');
-                        return;
-                    }
-
-                    state.currentUser = data.user;
-                    sessionStorage.setItem('estoque_current_user', JSON.stringify(data.user));
-
-                    checkUserSession();
-                    loadDataFromServer();
-                } catch (err) {
-                    console.error("Erro na autenticação:", err);
-                    alert("Erro de conexão com o servidor.");
-                }
-            });
-
-            // Controle da Modal de Senha
-            if (openPasswordModalBtn) {
-                openPasswordModalBtn.addEventListener('click', () => {
-                    authModal.classList.add('hidden');
-                    authModal.classList.remove('flex');
-                    passwordModal.classList.remove('hidden');
-                    passwordModal.classList.add('flex');
-                });
-            }
-
-            if (cancelPassBtn) {
-                cancelPassBtn.addEventListener('click', () => {
-                    passwordModal.classList.add('hidden');
-                    passwordModal.classList.remove('flex');
-                    authModal.classList.remove('hidden');
-                    authModal.classList.add('flex');
-                });
-            }
-
-            if (passwordChangeForm) {
-                passwordChangeForm.addEventListener('submit', async (e) => {
-                    e.preventDefault();
-                    const userId = document.getElementById('change-pass-userid').value.trim();
-                    const oldPassword = document.getElementById('change-pass-old').value.trim();
-                    const newPassword = document.getElementById('change-pass-new').value.trim();
-
-                    try {
-                        const response = await fetch('/api/users/password', {
-                            method: 'PUT',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ userId, oldPassword, newPassword })
-                        });
-
-                        const result = await response.json();
-
-                        if (!response.ok) {
-                            alert(result.error || 'Erro ao alterar a senha.');
-                            return;
-                        }
-
-                        alert(result.message || 'Senha alterada com sucesso!');
-                        passwordChangeForm.reset();
-                        passwordModal.classList.add('hidden');
-                        passwordModal.classList.remove('flex');
-                        authModal.classList.remove('hidden');
-                        authModal.classList.add('flex');
-                    } catch (err) {
-                        alert('Erro de conexão com o servidor.');
-                    }
-                });
-            }
-
-            logoutBtn.addEventListener('click', () => {
-                if (confirm('Deseja realmente sair da sua conta?')) {
-                    state.currentUser = null;
-                    sessionStorage.removeItem('estoque_current_user');
-                    checkUserSession();
-                }
-            });
-
             newProductBtn.addEventListener('click', () => {
                 if (!state.currentUser || state.currentUser.role !== 'admin') {
                     alert('Apenas administradores podem cadastrar novos produtos.');
@@ -493,6 +308,7 @@
                 modalTitle.textContent = 'Novo Produto';
                 productIdInput.value = '';
                 productForm.reset();
+                document.getElementById('product-min-stock').value = '5';
                 productModal.classList.remove('hidden');
                 productModal.classList.add('flex');
             });
@@ -705,21 +521,21 @@
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${escapeHtml(p.category || '-')}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${(p.price || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm">
-                        <span class="px-2.5 py-1 rounded-full text-xs font-semibold ${isLowStock ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}">
-                            ${p.quantity || 0} un. ${isLowStock ? '<i class="fa-solid fa-triangle-exclamation ml-1"></i>' : ''}
+                        <span class="px-2.5 py-1 rounded-full text-xs font-semibold ${isLowStock ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800'}">
+                            ${p.quantity || 0} un. ${isLowStock ? '<i class="fa-solid fa-triangle-exclamation ml-1 text-red-600"></i>' : ''}
                         </span>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">${totalVal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm space-x-1">
-                        <button onclick="openMovementModal('${p.id}', 'ENTRADA')" class="bg-green-50 hover:bg-green-100 text-green-700 px-2.5 py-1 rounded text-xs font-medium transition-colors" title="Registrar Entrada">
-                            <i class="fa-solid fa-plus mr-1"></i>Entrada
+                        <button onclick="openMovementModal('${p.id}', 'ENTRADA')" class="bg-gray-100 hover:bg-gray-200 text-black px-2.5 py-1 rounded text-xs font-medium transition-colors" title="Registrar Entrada">
+                            <i class="fa-solid fa-plus mr-1 text-red-600"></i>Entrada
                         </button>
                         <button onclick="openMovementModal('${p.id}', 'SAIDA')" class="bg-red-50 hover:bg-red-100 text-red-700 px-2.5 py-1 rounded text-xs font-medium transition-colors" title="Registrar Baixa">
                             <i class="fa-solid fa-minus mr-1"></i>Baixa
                         </button>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-                        <button onclick="editProduct('${p.id}')" class="text-blue-600 hover:text-blue-900" title="Editar Produto"><i class="fa-solid fa-pen-to-square"></i></button>
+                        <button onclick="editProduct('${p.id}')" class="text-black hover:text-red-600" title="Editar Produto"><i class="fa-solid fa-pen-to-square"></i></button>
                         <button onclick="deleteProduct('${p.id}')" class="text-red-600 hover:text-red-900" title="Excluir Produto"><i class="fa-solid fa-trash"></i></button>
                     </td>
                 `;
@@ -745,7 +561,7 @@
                     <td class="px-6 py-4 whitespace-nowrap text-xs text-gray-500">${formattedDate}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${escapeHtml(m.product_name)}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm">
-                        <span class="px-2 py-0.5 rounded text-xs font-semibold ${isEntrada ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                        <span class="px-2 py-0.5 rounded text-xs font-semibold ${isEntrada ? 'bg-gray-100 text-black border border-gray-300' : 'bg-red-100 text-red-800'}">
                             ${isEntrada ? '+' : '-'}${m.quantity} (${m.type})
                         </span>
                     </td>
