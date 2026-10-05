@@ -8,41 +8,40 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome para Ícones -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Seu style.css externo -->
-    <link rel="stylesheet" href="style.css">
     <style>
+        body { font-family: 'Inter', system-ui, sans-serif; background-color: #f8fafc; color: #1e293b; }
         .modal-overlay { backdrop-filter: blur(4px); }
     </style>
 </head>
-<body class="min-h-screen flex flex-col bg-[#0f1115] text-[#f1f5f9]">
+<body class="min-h-screen flex flex-col">
 
     <!-- Modal de Autenticação (Apenas Login Restrito) -->
-    <div id="auth-modal" class="fixed inset-0 bg-black bg-opacity-80 modal-overlay z-50 flex items-center justify-center p-4">
-        <div class="bg-[#161920] border border-[#262b36] rounded-2xl shadow-2xl max-w-md w-full p-8 transform transition-all">
-            <div class="w-16 h-16 bg-red-950 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl border border-red-900/50">
+    <div id="auth-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 modal-overlay z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 transform transition-all">
+            <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
                 <i class="fa-solid fa-lock"></i>
             </div>
             
-            <h2 class="text-2xl font-bold text-white text-center mb-2">Acesso Restrito</h2>
-            <p class="text-gray-400 text-sm text-center mb-6">Informe seu ID de 8 dígitos e senha pré-cadastrados para entrar.</p>
+            <h2 class="text-2xl font-bold text-gray-900 text-center mb-2">Acesso Restrito</h2>
+            <p class="text-gray-600 text-sm text-center mb-6">Informe seu ID de 8 dígitos e senha pré-cadastrados para entrar.</p>
 
             <form id="auth-form" class="space-y-4">
                 <div>
-                    <label class="block text-xs font-semibold text-gray-300 uppercase mb-1">ID de Acesso (8 Números)</label>
-                    <input type="text" id="auth-id-input" placeholder="Ex: 12345678" maxlength="8" pattern="\d{8}" title="Informe exatamente 8 números" required class="w-full px-4 py-3 bg-[#0f1115] border border-[#262b36] text-white rounded-lg focus:ring-2 focus:ring-red-600 focus:outline-none text-sm font-mono tracking-widest text-center">
+                    <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">ID de Acesso (8 Números)</label>
+                    <input type="text" id="auth-id-input" placeholder="Ex: 12345678" maxlength="8" pattern="\d{8}" title="Informe exatamente 8 números" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm font-mono tracking-widest text-center">
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-gray-300 uppercase mb-1">Senha</label>
-                    <input type="password" id="auth-password" placeholder="••••••••" required class="w-full px-4 py-3 bg-[#0f1115] border border-[#262b36] text-white rounded-lg focus:ring-2 focus:ring-red-600 focus:outline-none text-sm">
+                    <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Senha</label>
+                    <input type="password" id="auth-password" placeholder="••••••••" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm">
                 </div>
-                <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 rounded-lg shadow-lg shadow-red-900/30 transition-colors mt-2">
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg shadow transition-colors mt-2">
                     Entrar no Sistema
                 </button>
             </form>
 
             <!-- Botão para abrir a Modal de Alteração/Cadastro de Senha -->
             <div class="mt-4 text-center">
-                <button type="button" id="open-password-modal" class="text-xs text-red-400 hover:text-red-300 font-medium">
+                <button type="button" id="open-password-modal" class="text-xs text-blue-600 hover:text-blue-800 font-medium">
                     Alterar / Cadastrar Senha
                 </button>
             </div>
@@ -87,14 +86,14 @@
                     <i class="fa-solid fa-boxes-stacked text-xl"></i>
                 </div>
                 <div>
-                    <h1 class="text-xl font-bold text-gray-900">Estoque</h1>
+                    <h1 class="text-xl font-bold text-gray-900">Estoque Colaborativo</h1>
                     <p class="text-xs text-gray-500">Controle de Entradas e Baixas</p>
                 </div>
             </div>
             <div class="flex items-center space-x-4">
                 <div class="bg-gray-100 px-4 py-2 rounded-lg flex items-center space-x-2 text-sm text-gray-700">
                     <i class="fa-solid fa-user text-blue-600"></i>
-                    <span>Usuário: <strong id="current-user" class="text-black font-bold">-</strong></span>
+                    <span>Usuário: <strong id="current-user" class="text-gray-900">-</strong></span>
                     <button id="logout-btn" class="text-xs text-red-600 hover:underline ml-3 font-medium">(Sair)</button>
                 </div>
                 <button id="export-data" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg text-sm font-medium transition-colors" title="Exportar Dados">
@@ -113,42 +112,35 @@
         
         <!-- Cards de Estatísticas -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-    <!-- Card 1 -->
-    <div class="bg-black p-6 rounded-xl shadow-sm border border-red-900/50 flex items-center justify-between">
-        <div>
-            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Total de Itens</p>
-            <h3 id="total-items" class="text-2xl font-bold text-white mt-1">0</h3>
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Total de Itens</p>
+                    <h3 id="total-items" class="text-2xl font-bold text-gray-900 mt-1">0</h3>
+                </div>
+                <div class="bg-blue-50 text-blue-600 p-3 rounded-lg"><i class="fa-solid fa-box text-lg"></i></div>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Valor em Estoque</p>
+                    <h3 id="total-value" class="text-2xl font-bold text-gray-900 mt-1">R$ 0,00</h3>
+                </div>
+                <div class="bg-green-50 text-green-600 p-3 rounded-lg"><i class="fa-solid fa-wallet text-lg"></i></div>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Estoque Baixo</p>
+                    <h3 id="low-stock-count" class="text-2xl font-bold text-red-600 mt-1">0</h3>
+                </div>
+                <div class="bg-red-50 text-red-600 p-3 rounded-lg"><i class="fa-solid fa-triangle-exclamation text-lg"></i></div>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Movimentações Hoje</p>
+                    <h3 id="today-movements" class="text-2xl font-bold text-gray-900 mt-1">0</h3>
+                </div>
+                <div class="bg-amber-50 text-amber-600 p-3 rounded-lg"><i class="fa-solid fa-clock-rotate-left text-lg"></i></div>
+            </div>
         </div>
-        <div class="bg-red-950/60 text-red-500 p-3 rounded-lg border border-red-900/30"><i class="fa-solid fa-box text-lg"></i></div>
-    </div>
-
-    <!-- Card 2 -->
-    <div class="bg-black p-6 rounded-xl shadow-sm border border-red-900/50 flex items-center justify-between">
-        <div>
-            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Valor em Estoque</p>
-            <h3 id="total-value" class="text-2xl font-bold text-white mt-1">R$ 0,00</h3>
-        </div>
-        <div class="bg-red-950/60 text-red-500 p-3 rounded-lg border border-red-900/30"><i class="fa-solid fa-wallet text-lg"></i></div>
-    </div>
-
-    <!-- Card 3 -->
-    <div class="bg-black p-6 rounded-xl shadow-sm border border-red-900/50 flex items-center justify-between">
-        <div>
-            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Estoque Baixo</p>
-            <h3 id="low-stock-count" class="text-2xl font-bold text-red-500 mt-1">0</h3>
-        </div>
-        <div class="bg-red-950/60 text-red-500 p-3 rounded-lg border border-red-900/30"><i class="fa-solid fa-triangle-exclamation text-lg"></i></div>
-    </div>
-
-    <!-- Card 4 -->
-    <div class="bg-black p-6 rounded-xl shadow-sm border border-red-900/50 flex items-center justify-between">
-        <div>
-            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Movimentações Hoje</p>
-            <h3 id="today-movements" class="text-2xl font-bold text-white mt-1">0</h3>
-        </div>
-        <div class="bg-red-950/60 text-red-500 p-3 rounded-lg border border-red-900/30"><i class="fa-solid fa-clock-rotate-left text-lg"></i></div>
-    </div>
-</div>
 
         <!-- Seção de Produtos -->
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
@@ -169,108 +161,110 @@
             </div>
 
             <div class="overflow-x-auto">
-    <table class="min-w-full divide-y divide-red-950">
-        <thead class="bg-black">
-            <tr>
-                <th class="px-6 py-3 text-left text-xs font-semibold text-red-500 uppercase tracking-wider">Produto / SKU</th>
-                <th class="px-6 py-3 text-left text-xs font-semibold text-red-500 uppercase tracking-wider">Categoria</th>
-                <th class="px-6 py-3 text-left text-xs font-semibold text-red-500 uppercase tracking-wider">Preço Un.</th>
-                <th class="px-6 py-3 text-left text-xs font-semibold text-red-500 uppercase tracking-wider">Qtd Atual</th>
-                <th class="px-6 py-3 text-left text-xs font-semibold text-red-500 uppercase tracking-wider">Total</th>
-                <th class="px-6 py-3 text-left text-xs font-semibold text-red-500 uppercase tracking-wider">Movimentar</th>
-                <th class="px-6 py-3 text-right text-xs font-semibold text-red-500 uppercase tracking-wider">Ações</th>
-            </tr>
-        </thead>
-        <tbody id="products-table-body" class="bg-black divide-y divide-red-950/40 text-gray-200">
-            <!-- Preenchido via JS -->
-        </tbody>
-    </table>
-</div>
-   <!-- Seção de Histórico de Movimentações -->
-    <div class="bg-black rounded-xl shadow-sm border border-red-900/50 overflow-hidden">
-        <div class="p-6 border-b border-red-950">
-            <h3 class="text-lg font-bold text-white"><i class="fa-solid fa-history mr-2 text-red-500"></i>Histórico de Movimentações (Entradas e Baixas)</h3>
-            <p class="text-xs text-gray-400 mt-0.5">Registro colaborativo de todas as alterações feitas pela equipe</p>
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Produto / SKU</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Categoria</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Preço Un.</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Qtd Atual</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Movimentar</th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="products-table-body" class="bg-white divide-y divide-gray-200">
+                        <!-- Preenchido via JS -->
+                    </tbody>
+                </table>
+            </div>
         </div>
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-red-950">
-                <thead class="bg-black">
-                    <tr>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-red-500 uppercase tracking-wider">Data / Hora</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-red-500 uppercase tracking-wider">Produto</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-red-500 uppercase tracking-wider">Tipo</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-red-500 uppercase tracking-wider">Justificativa / Observação</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-red-500 uppercase tracking-wider">Responsável</th>
-                    </tr>
-                </thead>
-                <tbody id="movements-table-body" class="bg-black divide-y divide-red-950/40 text-gray-200">
-                    <!-- Preenchido via JS -->
-                </tbody>
-            </table>
-        </div>
-    </div>
-</main>
 
-   <!-- Modal de Cadastro / Edição de Produto -->
-<div id="product-modal" class="fixed inset-0 bg-black bg-opacity-75 modal-overlay z-40 hidden items-center justify-center p-4">
-    <div class="bg-black rounded-2xl shadow-2xl border border-red-900/60 max-w-lg w-full p-6">
-        <h3 id="modal-title" class="text-lg font-bold text-white mb-4">Novo Produto</h3>
-        <form id="product-form" class="space-y-4">
-            <input type="hidden" id="product-id">
-            <div>
-                <label class="block text-xs font-semibold text-gray-400 uppercase mb-1">Nome do Produto</label>
-                <input type="text" id="product-name" required class="w-full px-3 py-2 bg-neutral-900 border border-red-950 rounded-lg text-sm text-white placeholder-gray-500 focus:ring-2 focus:ring-red-600 focus:outline-none">
+        <!-- Seção de Histórico de Movimentações -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div class="p-6 border-b border-gray-200">
+                <h3 class="text-lg font-bold text-gray-900"><i class="fa-solid fa-history mr-2 text-blue-600"></i>Histórico de Movimentações (Entradas e Baixas)</h3>
+                <p class="text-xs text-gray-500 mt-0.5">Registro colaborativo de todas as alterações feitas pela equipe</p>
             </div>
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-xs font-semibold text-gray-400 uppercase mb-1">SKU / Código</label>
-                    <input type="text" id="product-sku" class="w-full px-3 py-2 bg-neutral-900 border border-red-950 rounded-lg text-sm text-white placeholder-gray-500 focus:ring-2 focus:ring-red-600 focus:outline-none">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-gray-400 uppercase mb-1">Categoria</label>
-                    <input type="text" id="product-category" class="w-full px-3 py-2 bg-neutral-900 border border-red-950 rounded-lg text-sm text-white placeholder-gray-500 focus:ring-2 focus:ring-red-600 focus:outline-none" placeholder="Ex: Eletrônicos">
-                </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data / Hora</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Produto</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Justificativa / Observação</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Responsável</th>
+                        </tr>
+                    </thead>
+                    <tbody id="movements-table-body" class="bg-white divide-y divide-gray-200">
+                        <!-- Preenchido via JS -->
+                    </tbody>
+                </table>
             </div>
-            <div class="grid grid-cols-3 gap-4">
+        </div>
+    </main>
+
+    <!-- Modal de Cadastro / Edição de Produto -->
+    <div id="product-modal" class="fixed inset-0 bg-gray-900 bg-opacity-50 modal-overlay z-40 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-xl max-w-lg w-full p-6">
+            <h3 id="modal-title" class="text-lg font-bold text-gray-900 mb-4">Novo Produto</h3>
+            <form id="product-form" class="space-y-4">
+                <input type="hidden" id="product-id">
                 <div>
-                    <label class="block text-xs font-semibold text-gray-400 uppercase mb-1">Preço Un. (R$)</label>
-                    <input type="number" step="0.01" min="0" id="product-price" required class="w-full px-3 py-2 bg-neutral-900 border border-red-950 rounded-lg text-sm text-white focus:ring-2 focus:ring-red-600 focus:outline-none">
+                    <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Nome do Produto</label>
+                    <input type="text" id="product-name" required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
                 </div>
-                <div>
-                    <label class="block text-xs font-semibold text-gray-400 uppercase mb-1">Qtd Inicial</label>
-                    <input type="number" min="0" id="product-quantity" required class="w-full px-3 py-2 bg-neutral-900 border border-red-950 rounded-lg text-sm text-white focus:ring-2 focus:ring-red-600 focus:outline-none">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">SKU / Código</label>
+                        <input type="text" id="product-sku" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Categoria</label>
+                        <input type="text" id="product-category" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Ex: Eletrônicos">
+                    </div>
                 </div>
-                <div>
-                    <label class="block text-xs font-semibold text-gray-400 uppercase mb-1">Estoque Mín.</label>
-                    <input type="number" min="0" id="product-min-stock" value="5" required class="w-full px-3 py-2 bg-neutral-900 border border-red-950 rounded-lg text-sm text-white focus:ring-2 focus:ring-red-600 focus:outline-none">
+                <div class="grid grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Preço Un. (R$)</label>
+                        <input type="number" step="0.01" min="0" id="product-price" required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Qtd Inicial</label>
+                        <input type="number" min="0" id="product-quantity" required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Estoque Mín.</label>
+                        <input type="number" min="0" id="product-min-stock" value="5" required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    </div>
                 </div>
-            </div>
-            <div class="flex justify-end space-x-3 pt-4 border-t border-red-950">
-                <button type="button" id="cancel-product-btn" class="px-4 py-2 border border-red-900/50 rounded-lg text-sm font-medium text-gray-300 hover:bg-neutral-900 hover:text-white">Cancelar</button>
-                <button type="submit" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium shadow">Salvar Produto</button>
-            </div>
-        </form>
+                <div class="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+                    <button type="button" id="cancel-product-btn" class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">Cancelar</button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium shadow">Salvar Produto</button>
+                </div>
+            </form>
+        </div>
     </div>
-</div>
 
     <!-- Modal de Movimentação (Entrada / Baixa) -->
-    <div id="movement-modal" class="fixed inset-0 bg-black bg-opacity-75 modal-overlay z-40 hidden items-center justify-center p-4">
-        <div class="bg-black rounded-2xl shadow-2xl border border-red-900/60 max-w-md w-full p-6">
-            <h3 id="movement-title" class="text-lg font-bold text-white mb-4">Movimentar Estoque</h3>
+    <div id="movement-modal" class="fixed inset-0 bg-gray-900 bg-opacity-50 modal-overlay z-40 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
+            <h3 id="movement-title" class="text-lg font-bold text-gray-900 mb-4">Movimentar Estoque</h3>
             <form id="movement-form" class="space-y-4">
                 <input type="hidden" id="movement-product-id">
                 <input type="hidden" id="movement-type">
                 <div>
-                    <label class="block text-xs font-semibold text-gray-400 uppercase mb-1">Quantidade</label>
-                    <input type="number" min="1" id="movement-quantity" required class="w-full px-3 py-2 bg-neutral-900 border border-red-950 rounded-lg text-sm text-white focus:ring-2 focus:ring-red-600 focus:outline-none font-bold text-lg">
+                    <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Quantidade</label>
+                    <input type="number" min="1" id="movement-quantity" required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none font-bold text-lg">
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-gray-400 uppercase mb-1">Justificativa / Motivo</label>
-                    <textarea id="movement-reason" rows="3" placeholder="Ex: Venda para cliente X, Reposição de fornecedor, Uso interno..." required class="w-full px-3 py-2 bg-neutral-900 border border-red-950 rounded-lg text-sm text-white placeholder-gray-500 focus:ring-2 focus:ring-red-600 focus:outline-none"></textarea>
+                    <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Justificativa / Motivo</label>
+                    <textarea id="movement-reason" rows="3" placeholder="Ex: Venda para cliente X, Reposição de fornecedor, Uso interno..." required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"></textarea>
                 </div>
-                <div class="flex justify-end space-x-3 pt-4 border-t border-red-950">
-                    <button type="button" id="cancel-movement-btn" class="px-4 py-2 border border-red-900/50 rounded-lg text-sm font-medium text-gray-300 hover:bg-neutral-900 hover:text-white">Cancelar</button>
-                    <button type="submit" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium shadow">Confirmar</button>
+                <div class="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+                    <button type="button" id="cancel-movement-btn" class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">Cancelar</button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium shadow">Confirmar</button>
                 </div>
             </form>
         </div>
@@ -704,30 +698,31 @@
 
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                  <td class="px-6 py-4 whitespace-nowrap">
-        <div class="text-sm font-medium text-white">${escapeHtml(p.name)}</div>
-        <div class="text-xs text-gray-400 font-mono">SKU: ${escapeHtml(p.sku || '-')}</div>
-    </td>
-    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">${escapeHtml(p.category || '-')}</td>
-    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">${(p.price || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
-    <td class="px-6 py-4 whitespace-nowrap text-sm">
-        <span class="px-2.5 py-1 rounded-full text-xs font-semibold ${isLowStock ? 'bg-red-950 text-red-400 border border-red-900/50' : 'bg-emerald-950 text-emerald-400 border border-emerald-900/50'}">
-            ${p.quantity || 0} un. ${isLowStock ? '<i class="fa-solid fa-triangle-exclamation ml-1"></i>' : ''}
-        </span>
-    </td>
-    <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-white">${totalVal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
-    <td class="px-6 py-4 whitespace-nowrap text-sm space-x-1">
-        <button onclick="openMovementModal('${p.id}', 'ENTRADA')" class="bg-neutral-900 hover:bg-neutral-800 text-emerald-400 border border-emerald-950 px-2.5 py-1 rounded text-xs font-medium transition-colors" title="Registrar Entrada">
-            <i class="fa-solid fa-plus mr-1"></i>Entrada
-        </button>
-        <button onclick="openMovementModal('${p.id}', 'SAIDA')" class="bg-neutral-900 hover:bg-neutral-800 text-red-400 border border-red-950 px-2.5 py-1 rounded text-xs font-medium transition-colors" title="Registrar Baixa">
-            <i class="fa-solid fa-minus mr-1"></i>Baixa
-        </button>
-    </td>
-    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-        <button onclick="editProduct('${p.id}')" class="text-gray-400 hover:text-white transition-colors" title="Editar Produto"><i class="fa-solid fa-pen-to-square"></i></button>
-        <button onclick="deleteProduct('${p.id}')" class="text-red-500 hover:text-red-400 transition-colors" title="Excluir Produto"><i class="fa-solid fa-trash"></i></button>
-    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-medium text-gray-900">${escapeHtml(p.name)}</div>
+                        <div class="text-xs text-gray-500 font-mono">SKU: ${escapeHtml(p.sku || '-')}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${escapeHtml(p.category || '-')}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${(p.price || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                        <span class="px-2.5 py-1 rounded-full text-xs font-semibold ${isLowStock ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}">
+                            ${p.quantity || 0} un. ${isLowStock ? '<i class="fa-solid fa-triangle-exclamation ml-1"></i>' : ''}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">${totalVal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm space-x-1">
+                        <button onclick="openMovementModal('${p.id}', 'ENTRADA')" class="bg-green-50 hover:bg-green-100 text-green-700 px-2.5 py-1 rounded text-xs font-medium transition-colors" title="Registrar Entrada">
+                            <i class="fa-solid fa-plus mr-1"></i>Entrada
+                        </button>
+                        <button onclick="openMovementModal('${p.id}', 'SAIDA')" class="bg-red-50 hover:bg-red-100 text-red-700 px-2.5 py-1 rounded text-xs font-medium transition-colors" title="Registrar Baixa">
+                            <i class="fa-solid fa-minus mr-1"></i>Baixa
+                        </button>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                        <button onclick="editProduct('${p.id}')" class="text-blue-600 hover:text-blue-900" title="Editar Produto"><i class="fa-solid fa-pen-to-square"></i></button>
+                        <button onclick="deleteProduct('${p.id}')" class="text-red-600 hover:text-red-900" title="Excluir Produto"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                `;
                 productsTableBody.appendChild(tr);
             });
         }
@@ -808,26 +803,5 @@
             }
         };
     </script>
-
-    <script>
-    // Script de emergência para forçar o tema escuro/vermelho em tempo de execução
-    document.addEventListener("DOMContentLoaded", () => {
-        // Troca fundos claros por escuros
-        document.querySelectorAll('.bg-white, .bg-slate-50, .bg-gray-50').forEach(el => {
-            el.classList.remove('bg-white', 'bg-slate-50', 'bg-gray-50');
-            el.style.backgroundColor = '#161920';
-            el.style.borderColor = '#262b36';
-        });
-        // Troca textos escuros por claros
-        document.querySelectorAll('.text-gray-900, .text-slate-800, .text-slate-900').forEach(el => {
-            el.classList.remove('text-gray-900', 'text-slate-800', 'text-slate-900');
-            el.style.color = '#f1f5f9';
-        });
-        // Troca azul por vermelho nos botões e textos
-        document.querySelectorAll('[class*="blue-"]').forEach(el => {
-            el.className = el.className.replace(/blue-\d+/g, 'red-600');
-        });
-    });
-</script>
 </body>
 </html>
