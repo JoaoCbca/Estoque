@@ -804,5 +804,26 @@
             }
         };
     </script>
+
+    <script>
+    // Script de emergência para forçar o tema escuro/vermelho em tempo de execução
+    document.addEventListener("DOMContentLoaded", () => {
+        // Troca fundos claros por escuros
+        document.querySelectorAll('.bg-white, .bg-slate-50, .bg-gray-50').forEach(el => {
+            el.classList.remove('bg-white', 'bg-slate-50', 'bg-gray-50');
+            el.style.backgroundColor = '#161920';
+            el.style.borderColor = '#262b36';
+        });
+        // Troca textos escuros por claros
+        document.querySelectorAll('.text-gray-900, .text-slate-800, .text-slate-900').forEach(el => {
+            el.classList.remove('text-gray-900', 'text-slate-800', 'text-slate-900');
+            el.style.color = '#f1f5f9';
+        });
+        // Troca azul por vermelho nos botões e textos
+        document.querySelectorAll('[class*="blue-"]').forEach(el => {
+            el.className = el.className.replace(/blue-\d+/g, 'red-600');
+        });
+    });
+</script>
 </body>
 </html>
