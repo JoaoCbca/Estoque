@@ -62,7 +62,10 @@ document.addEventListener('DOMContentLoaded', () => {
 // Buscar dados atualizados do servidor
 async function loadDataFromServer() {
     try {
-        const response = await fetch('/api/data');
+        const token = state.currentUser?.token || sessionStorage.getItem('estoque_token') || '';
+        const response = await fetch('/api/data', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
         if (!response.ok) return;
         const data = await response.json();
         
@@ -121,9 +124,15 @@ async function saveState() {
             date: m.date
         }));
 
+        // Recupera o token de autenticação para evitar o erro de token ausente
+        const token = state.currentUser?.token || sessionStorage.getItem('estoque_token') || '';
+
         await fetch('/api/sync', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}` 
+            },
             body: JSON.stringify({
                 products: productsPayload,
                 movements: movementsPayload
@@ -225,9 +234,13 @@ function setupEventListeners() {
             const newPassword = document.getElementById('change-pass-new').value.trim();
 
             try {
+                const token = state.currentUser?.token || sessionStorage.getItem('estoque_token') || '';
                 const response = await fetch('/api/users/password', {
                     method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
                     body: JSON.stringify({ userId, oldPassword, newPassword })
                 });
 
