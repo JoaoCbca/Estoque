@@ -62,9 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // Buscar dados atualizados do servidor
 async function loadDataFromServer() {
     try {
-        const response = await fetch('/api/data', {
-            credentials: 'include' // <--- ESSENCIAL: Envia o cookie de sessão para o servidor reconhecer o login
-        });
+        const response = await fetch('/api/data');
         if (!response.ok) return;
         const data = await response.json();
         
@@ -125,10 +123,7 @@ async function saveState() {
 
         await fetch('/api/sync', {
             method: 'POST',
-            credentials: 'include', // <--- ESSENCIAL: Garante que o cookie de sessão seja enviado na requisição POST
-            headers: { 
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 products: productsPayload,
                 movements: movementsPayload
@@ -166,7 +161,6 @@ function setupEventListeners() {
             try {
                 const response = await fetch('/api/auth', {
                     method: 'POST',
-                    credentials: 'include',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ userId, password })
                 });
@@ -182,7 +176,6 @@ function setupEventListeners() {
                 sessionStorage.setItem('estoque_current_user', JSON.stringify(result.user));
                 checkUser();
                 passwordInput.value = '';
-                loadDataFromServer(); // Recarrega os dados imediatamente após o login
             } catch (err) {
                 alert('Erro de conexão com o servidor.');
             }
@@ -234,7 +227,6 @@ function setupEventListeners() {
             try {
                 const response = await fetch('/api/users/password', {
                     method: 'PUT',
-                    credentials: 'include',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ userId, oldPassword, newPassword })
                 });
