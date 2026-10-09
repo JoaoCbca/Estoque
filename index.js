@@ -6,6 +6,11 @@ let state = {
     users: []
 };
 
+// Função auxiliar para recuperar o token JWT salvo
+function getToken() {
+    return localStorage.getItem('estoque_token') || '';
+}
+
 // Elementos do DOM
 const userModal = document.getElementById('user-modal');
 const userIdInput = document.getElementById('user-id-input');
@@ -62,7 +67,12 @@ document.addEventListener('DOMContentLoaded', () => {
 // Buscar dados atualizados do servidor
 async function loadDataFromServer() {
     try {
-        const response = await fetch('/api/data');
+        const token = getToken();
+        const response = await fetch('/api/data', {
+            headers: {
+                ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+            }
+        });
         if (!response.ok) return;
         const data = await response.json();
         
@@ -96,9 +106,10 @@ async function loadDataFromServer() {
     }
 }
 
-// Salvar/Sincronizar alterações no servidor
+// Salvar/Sincronizar alterações no servidor com envio do Token JWT
 async function saveState() {
     try {
+        const token = getToken();
         const productsPayload = state.products.map(p => ({
             id: p.id,
             name: p.name,
@@ -123,7 +134,10 @@ async function saveState() {
 
         await fetch('/api/sync', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}` // <--- Enviando o Token JWT aqui
+            },
             body: JSON.stringify({
                 products: productsPayload,
                 movements: movementsPayload
@@ -172,10 +186,16 @@ function setupEventListeners() {
                     return;
                 }
 
+                // Salva o token JWT no localStorage e o usuário na session
+                if (result.token) {
+                    localStorage.setItem('estoque_token', result.token);
+                }
+
                 state.currentUser = result.user;
                 sessionStorage.setItem('estoque_current_user', JSON.stringify(result.user));
                 checkUser();
                 passwordInput.value = '';
+                loadDataFromServer(); // Recarrega os dados após autenticar
             } catch (err) {
                 alert('Erro de conexão com o servidor.');
             }
@@ -197,6 +217,7 @@ function setupEventListeners() {
     changeUserBtn.addEventListener('click', () => {
         state.currentUser = null;
         sessionStorage.removeItem('estoque_current_user');
+        localStorage.removeItem('estoque_token'); // Limpa o token ao deslogar
         if (userIdInput) userIdInput.value = '';
         if (passwordInput) passwordInput.value = '';
         checkUser();
