@@ -9,39 +9,39 @@
     <!-- FontAwesome para Ícones -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { font-family: 'Inter', system-ui, sans-serif; background-color: #f8fafc; color: #1e293b; }
+        body { font-family: 'Inter', system-ui, sans-serif; background-color: #0f172a; color: #f8fafc; }
         .modal-overlay { backdrop-filter: blur(4px); }
     </style>
 </head>
-<body class="min-h-screen flex flex-col">
+<body class="min-h-screen flex flex-col bg-black text-white">
 
     <!-- Modal de Autenticação (Apenas Login Restrito) -->
-    <div id="auth-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 modal-overlay z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 transform transition-all">
-            <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
+    <div id="auth-modal" class="fixed inset-0 bg-black bg-opacity-85 modal-overlay z-50 flex items-center justify-center p-4">
+        <div class="bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl max-w-md w-full p-8 transform transition-all">
+            <div class="w-16 h-16 bg-red-950 text-red-500 border border-red-900 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
                 <i class="fa-solid fa-lock"></i>
             </div>
             
-            <h2 class="text-2xl font-bold text-gray-900 text-center mb-2">Acesso Restrito</h2>
-            <p class="text-gray-600 text-sm text-center mb-6">Informe seu ID de 8 dígitos e senha pré-cadastrados para entrar.</p>
+            <h2 class="text-2xl font-bold text-white text-center mb-2">Acesso Restrito</h2>
+            <p class="text-zinc-400 text-sm text-center mb-6">Informe seu ID de 8 dígitos e senha pré-cadastrados para entrar.</p>
 
             <form id="auth-form" class="space-y-4">
                 <div>
-                    <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">ID de Acesso (8 Números)</label>
-                    <input type="text" id="auth-id-input" placeholder="Ex: 12345678" maxlength="8" pattern="\d{8}" title="Informe exatamente 8 números" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm font-mono tracking-widest text-center">
+                    <label class="block text-xs font-semibold text-zinc-300 uppercase mb-1">ID de Acesso (8 Números)</label>
+                    <input type="text" id="auth-id-input" placeholder="Ex: 12345678" maxlength="8" pattern="\d{8}" title="Informe exatamente 8 números" required class="w-full px-4 py-3 bg-black border border-zinc-700 rounded-lg focus:ring-2 focus:ring-red-600 focus:outline-none text-sm font-mono tracking-widest text-center text-white">
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Senha</label>
-                    <input type="password" id="auth-password" placeholder="••••••••" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm">
+                    <label class="block text-xs font-semibold text-zinc-300 uppercase mb-1">Senha</label>
+                    <input type="password" id="auth-password" placeholder="••••••••" required class="w-full px-4 py-3 bg-black border border-zinc-700 rounded-lg focus:ring-2 focus:ring-red-600 focus:outline-none text-sm text-white">
                 </div>
-                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg shadow transition-colors mt-2">
+                <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 rounded-lg shadow transition-colors mt-2">
                     Entrar no Sistema
                 </button>
             </form>
 
             <!-- Botão para abrir a Modal de Alteração/Cadastro de Senha -->
             <div class="mt-4 text-center">
-                <button type="button" id="open-password-modal" class="text-xs text-blue-600 hover:text-blue-800 font-medium">
+                <button type="button" id="open-password-modal" class="text-xs text-red-400 hover:text-red-300 font-medium">
                     Alterar / Cadastrar Senha
                 </button>
             </div>
@@ -49,57 +49,57 @@
     </div>
 
     <!-- Modal de Alteração / Cadastro de Senha -->
-    <div id="password-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 modal-overlay z-50 hidden items-center justify-center p-4">
-        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 transform transition-all">
-            <div class="w-16 h-16 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
+    <div id="password-modal" class="fixed inset-0 bg-black bg-opacity-85 modal-overlay z-50 hidden items-center justify-center p-4">
+        <div class="bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl max-w-md w-full p-8 transform transition-all">
+            <div class="w-16 h-16 bg-red-950 text-red-500 border border-red-900 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
                 <i class="fa-solid fa-key"></i>
             </div>
-            <h3 class="text-2xl font-bold text-gray-900 text-center mb-2">Alterar / Cadastrar Senha</h3>
-            <p class="text-gray-600 text-sm text-center mb-6">Informe seu ID, sua senha atual (ou temporária) e a nova senha desejada.</p>
+            <h3 class="text-2xl font-bold text-white text-center mb-2">Alterar / Cadastrar Senha</h3>
+            <p class="text-zinc-400 text-sm text-center mb-6">Informe seu ID, sua senha atual (ou temporária) e a nova senha desejada.</p>
             
             <form id="password-change-form" class="space-y-4">
                 <div>
-                    <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">ID de Acesso</label>
-                    <input type="text" id="change-pass-userid" maxlength="8" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none text-sm font-mono tracking-widest text-center" placeholder="Seu ID cadastrado">
+                    <label class="block text-xs font-semibold text-zinc-300 uppercase mb-1">ID de Acesso</label>
+                    <input type="text" id="change-pass-userid" maxlength="8" required class="w-full px-4 py-3 bg-black border border-zinc-700 rounded-lg focus:ring-2 focus:ring-red-600 focus:outline-none text-sm font-mono tracking-widest text-center text-white" placeholder="Seu ID cadastrado">
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Senha Atual</label>
-                    <input type="password" id="change-pass-old" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none text-sm" placeholder="Senha atual">
+                    <label class="block text-xs font-semibold text-zinc-300 uppercase mb-1">Senha Atual</label>
+                    <input type="password" id="change-pass-old" required class="w-full px-4 py-3 bg-black border border-zinc-700 rounded-lg focus:ring-2 focus:ring-red-600 focus:outline-none text-sm text-white" placeholder="Senha atual">
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Nova Senha</label>
-                    <input type="password" id="change-pass-new" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none text-sm" placeholder="Nova senha">
+                    <label class="block text-xs font-semibold text-zinc-300 uppercase mb-1">Nova Senha</label>
+                    <input type="password" id="change-pass-new" required class="w-full px-4 py-3 bg-black border border-zinc-700 rounded-lg focus:ring-2 focus:ring-red-600 focus:outline-none text-sm text-white" placeholder="Nova senha">
                 </div>
                 <div class="flex space-x-3 pt-2">
-                    <button type="button" id="cancel-pass-btn" class="w-1/2 bg-gray-100 text-gray-700 font-semibold py-3 rounded-lg hover:bg-gray-200 transition-colors">Cancelar</button>
-                    <button type="submit" class="w-1/2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-lg shadow transition-colors">Salvar Senha</button>
+                    <button type="button" id="cancel-pass-btn" class="w-1/2 bg-zinc-800 text-zinc-300 font-semibold py-3 rounded-lg hover:bg-zinc-700 transition-colors">Cancelar</button>
+                    <button type="submit" class="w-1/2 bg-red-600 hover:bg-red-700 text-white font-semibold py-3 rounded-lg shadow transition-colors">Salvar Senha</button>
                 </div>
             </form>
         </div>
     </div>
 
     <!-- Cabeçalho Principal -->
-    <header class="bg-white shadow-sm border-b border-gray-200">
+    <header class="bg-zinc-900 border-b border-zinc-800 shadow-sm">
         <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
             <div class="flex items-center space-x-3">
-                <div class="bg-blue-600 text-white p-2.5 rounded-xl shadow">
+                <div class="bg-red-600 text-white p-2.5 rounded-xl shadow">
                     <i class="fa-solid fa-boxes-stacked text-xl"></i>
                 </div>
                 <div>
-                    <h1 class="text-xl font-bold text-gray-900">Estoque Colaborativo</h1>
-                    <p class="text-xs text-gray-500">Controle de Entradas e Baixas</p>
+                    <h1 class="text-xl font-bold text-white">Estoque Colaborativo</h1>
+                    <p class="text-xs text-zinc-400">Controle de Entradas e Baixas</p>
                 </div>
             </div>
             <div class="flex items-center space-x-4">
-                <div class="bg-gray-100 px-4 py-2 rounded-lg flex items-center space-x-2 text-sm text-gray-700">
-                    <i class="fa-solid fa-user text-blue-600"></i>
-                    <span>Usuário: <strong id="current-user" class="text-gray-900">-</strong></span>
-                    <button id="logout-btn" class="text-xs text-red-600 hover:underline ml-3 font-medium">(Sair)</button>
+                <div class="bg-zinc-800 border border-zinc-700 px-4 py-2 rounded-lg flex items-center space-x-2 text-sm text-zinc-200">
+                    <i class="fa-solid fa-user text-red-500"></i>
+                    <span>Usuário: <strong id="current-user" class="text-white">-</strong></span>
+                    <button id="logout-btn" class="text-xs text-red-400 hover:underline ml-3 font-medium">(Sair)</button>
                 </div>
-                <button id="export-data" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg text-sm font-medium transition-colors" title="Exportar Dados">
+                <button id="export-data" class="bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-zinc-200 px-3 py-2 rounded-lg text-sm font-medium transition-colors" title="Exportar Dados">
                     <i class="fa-solid fa-download mr-1"></i> Exportar
                 </button>
-                <button id="import-data" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg text-sm font-medium transition-colors" title="Importar Dados">
+                <button id="import-data" class="bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-zinc-200 px-3 py-2 rounded-lg text-sm font-medium transition-colors" title="Importar Dados">
                     <i class="fa-solid fa-upload mr-1"></i> Importar
                 </button>
                 <input type="file" id="import-file" class="hidden" accept=".json">
@@ -112,68 +112,68 @@
         
         <!-- Cards de Estatísticas -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 flex items-center justify-between">
+            <div class="bg-zinc-900 border border-zinc-800 p-6 rounded-xl shadow-sm flex items-center justify-between">
                 <div>
-                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Total de Itens</p>
-                    <h3 id="total-items" class="text-2xl font-bold text-gray-900 mt-1">0</h3>
+                    <p class="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Total de Itens</p>
+                    <h3 id="total-items" class="text-2xl font-bold text-white mt-1">0</h3>
                 </div>
-                <div class="bg-blue-50 text-blue-600 p-3 rounded-lg"><i class="fa-solid fa-box text-lg"></i></div>
+                <div class="bg-zinc-800 text-red-500 p-3 rounded-lg"><i class="fa-solid fa-box text-lg"></i></div>
             </div>
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 flex items-center justify-between">
+            <div class="bg-zinc-900 border border-zinc-800 p-6 rounded-xl shadow-sm flex items-center justify-between">
                 <div>
-                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Valor em Estoque</p>
-                    <h3 id="total-value" class="text-2xl font-bold text-gray-900 mt-1">R$ 0,00</h3>
+                    <p class="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Valor em Estoque</p>
+                    <h3 id="total-value" class="text-2xl font-bold text-white mt-1">R$ 0,00</h3>
                 </div>
-                <div class="bg-green-50 text-green-600 p-3 rounded-lg"><i class="fa-solid fa-wallet text-lg"></i></div>
+                <div class="bg-zinc-800 text-emerald-500 p-3 rounded-lg"><i class="fa-solid fa-wallet text-lg"></i></div>
             </div>
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 flex items-center justify-between">
+            <div class="bg-zinc-900 border border-zinc-800 p-6 rounded-xl shadow-sm flex items-center justify-between">
                 <div>
-                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Estoque Baixo</p>
-                    <h3 id="low-stock-count" class="text-2xl font-bold text-red-600 mt-1">0</h3>
+                    <p class="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Estoque Baixo</p>
+                    <h3 id="low-stock-count" class="text-2xl font-bold text-red-500 mt-1">0</h3>
                 </div>
-                <div class="bg-red-50 text-red-600 p-3 rounded-lg"><i class="fa-solid fa-triangle-exclamation text-lg"></i></div>
+                <div class="bg-zinc-800 text-red-500 p-3 rounded-lg"><i class="fa-solid fa-triangle-exclamation text-lg"></i></div>
             </div>
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 flex items-center justify-between">
+            <div class="bg-zinc-900 border border-zinc-800 p-6 rounded-xl shadow-sm flex items-center justify-between">
                 <div>
-                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Movimentações Hoje</p>
-                    <h3 id="today-movements" class="text-2xl font-bold text-gray-900 mt-1">0</h3>
+                    <p class="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Movimentações Hoje</p>
+                    <h3 id="today-movements" class="text-2xl font-bold text-white mt-1">0</h3>
                 </div>
-                <div class="bg-amber-50 text-amber-600 p-3 rounded-lg"><i class="fa-solid fa-clock-rotate-left text-lg"></i></div>
+                <div class="bg-zinc-800 text-amber-500 p-3 rounded-lg"><i class="fa-solid fa-clock-rotate-left text-lg"></i></div>
             </div>
         </div>
 
         <!-- Seção de Produtos -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-            <div class="p-6 border-b border-gray-200 flex flex-col md:flex-row justify-between items-center gap-4">
+        <div class="bg-zinc-900 border border-zinc-800 rounded-xl shadow-sm overflow-hidden">
+            <div class="p-6 border-b border-zinc-800 flex flex-col md:flex-row justify-between items-center gap-4">
                 <div class="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
                     <div class="relative w-full sm:w-72">
-                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400"><i class="fa-solid fa-search"></i></span>
-                        <input type="text" id="search-input" placeholder="Buscar por nome ou SKU..." class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-zinc-500"><i class="fa-solid fa-search"></i></span>
+                        <input type="text" id="search-input" placeholder="Buscar por nome ou SKU..." class="w-full pl-10 pr-4 py-2 bg-black border border-zinc-700 rounded-lg text-sm focus:ring-2 focus:ring-red-600 focus:outline-none text-white">
                     </div>
-                    <select id="category-filter" class="w-full sm:w-auto px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    <select id="category-filter" class="w-full sm:w-auto px-4 py-2 bg-black border border-zinc-700 rounded-lg text-sm focus:ring-2 focus:ring-red-600 focus:outline-none text-white">
                         <option value="">Todas as Categorias</option>
                     </select>
                 </div>
-                <button id="new-product-btn" class="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg text-sm transition-colors flex items-center justify-center space-x-2">
+                <button id="new-product-btn" class="w-full md:w-auto bg-red-600 hover:bg-red-700 text-white font-medium px-4 py-2 rounded-lg text-sm transition-colors flex items-center justify-center space-x-2">
                     <i class="fa-solid fa-plus"></i>
                     <span>Novo Produto</span>
                 </button>
             </div>
 
             <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
+                <table class="min-w-full divide-y divide-zinc-800">
+                    <thead class="bg-black">
                         <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Produto / SKU</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Categoria</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Preço Un.</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Qtd Atual</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Movimentar</th>
-                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-zinc-400 uppercase tracking-wider">Produto / SKU</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-zinc-400 uppercase tracking-wider">Categoria</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-zinc-400 uppercase tracking-wider">Preço Un.</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-zinc-400 uppercase tracking-wider">Qtd Atual</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-zinc-400 uppercase tracking-wider">Total</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-zinc-400 uppercase tracking-wider">Movimentar</th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-zinc-400 uppercase tracking-wider">Ações</th>
                         </tr>
                     </thead>
-                    <tbody id="products-table-body" class="bg-white divide-y divide-gray-200">
+                    <tbody id="products-table-body" class="bg-zinc-900 divide-y divide-zinc-800">
                         <!-- Preenchido via JS -->
                     </tbody>
                 </table>
@@ -181,23 +181,23 @@
         </div>
 
         <!-- Seção de Histórico de Movimentações -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-            <div class="p-6 border-b border-gray-200">
-                <h3 class="text-lg font-bold text-gray-900"><i class="fa-solid fa-history mr-2 text-blue-600"></i>Histórico de Movimentações (Entradas e Baixas)</h3>
-                <p class="text-xs text-gray-500 mt-0.5">Registro colaborativo de todas as alterações feitas pela equipe</p>
+        <div class="bg-zinc-900 border border-zinc-800 rounded-xl shadow-sm overflow-hidden">
+            <div class="p-6 border-b border-zinc-800">
+                <h3 class="text-lg font-bold text-white"><i class="fa-solid fa-history mr-2 text-red-500"></i>Histórico de Movimentações (Entradas e Baixas)</h3>
+                <p class="text-xs text-zinc-400 mt-0.5">Registro colaborativo de todas as alterações feitas pela equipe</p>
             </div>
             <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
+                <table class="min-w-full divide-y divide-zinc-800">
+                    <thead class="bg-black">
                         <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data / Hora</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Produto</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Justificativa / Observação</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Responsável</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-zinc-400 uppercase tracking-wider">Data / Hora</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-zinc-400 uppercase tracking-wider">Produto</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-zinc-400 uppercase tracking-wider">Tipo</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-zinc-400 uppercase tracking-wider">Justificativa / Observação</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-zinc-400 uppercase tracking-wider">Responsável</th>
                         </tr>
                     </thead>
-                    <tbody id="movements-table-body" class="bg-white divide-y divide-gray-200">
+                    <tbody id="movements-table-body" class="bg-zinc-900 divide-y divide-zinc-800">
                         <!-- Preenchido via JS -->
                     </tbody>
                 </table>
@@ -206,65 +206,65 @@
     </main>
 
     <!-- Modal de Cadastro / Edição de Produto -->
-    <div id="product-modal" class="fixed inset-0 bg-gray-900 bg-opacity-50 modal-overlay z-40 hidden items-center justify-center p-4">
-        <div class="bg-white rounded-2xl shadow-xl max-w-lg w-full p-6">
-            <h3 id="modal-title" class="text-lg font-bold text-gray-900 mb-4">Novo Produto</h3>
+    <div id="product-modal" class="fixed inset-0 bg-black bg-opacity-80 modal-overlay z-40 hidden items-center justify-center p-4">
+        <div class="bg-zinc-900 border border-zinc-800 rounded-2xl shadow-xl max-w-lg w-full p-6 text-white">
+            <h3 id="modal-title" class="text-lg font-bold text-white mb-4">Novo Produto</h3>
             <form id="product-form" class="space-y-4">
                 <input type="hidden" id="product-id">
                 <div>
-                    <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Nome do Produto</label>
-                    <input type="text" id="product-name" required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    <label class="block text-xs font-semibold text-zinc-300 uppercase mb-1">Nome do Produto</label>
+                    <input type="text" id="product-name" required class="w-full px-3 py-2 bg-black border border-zinc-700 rounded-lg text-sm focus:ring-2 focus:ring-red-600 focus:outline-none text-white">
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">SKU / Código</label>
-                        <input type="text" id="product-sku" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        <label class="block text-xs font-semibold text-zinc-300 uppercase mb-1">SKU / Código</label>
+                        <input type="text" id="product-sku" class="w-full px-3 py-2 bg-black border border-zinc-700 rounded-lg text-sm focus:ring-2 focus:ring-red-600 focus:outline-none text-white">
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Categoria</label>
-                        <input type="text" id="product-category" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Ex: Eletrônicos">
+                        <label class="block text-xs font-semibold text-zinc-300 uppercase mb-1">Categoria</label>
+                        <input type="text" id="product-category" class="w-full px-3 py-2 bg-black border border-zinc-700 rounded-lg text-sm focus:ring-2 focus:ring-red-600 focus:outline-none text-white" placeholder="Ex: Eletrônicos">
                     </div>
                 </div>
                 <div class="grid grid-cols-3 gap-4">
                     <div>
-                        <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Preço Un. (R$)</label>
-                        <input type="number" step="0.01" min="0" id="product-price" required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        <label class="block text-xs font-semibold text-zinc-300 uppercase mb-1">Preço Un. (R$)</label>
+                        <input type="number" step="0.01" min="0" id="product-price" required class="w-full px-3 py-2 bg-black border border-zinc-700 rounded-lg text-sm focus:ring-2 focus:ring-red-600 focus:outline-none text-white">
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Qtd Inicial</label>
-                        <input type="number" min="0" id="product-quantity" required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        <label class="block text-xs font-semibold text-zinc-300 uppercase mb-1">Qtd Inicial</label>
+                        <input type="number" min="0" id="product-quantity" required class="w-full px-3 py-2 bg-black border border-zinc-700 rounded-lg text-sm focus:ring-2 focus:ring-red-600 focus:outline-none text-white">
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Estoque Mín.</label>
-                        <input type="number" min="0" id="product-min-stock" value="5" required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        <label class="block text-xs font-semibold text-zinc-300 uppercase mb-1">Estoque Mín.</label>
+                        <input type="number" min="0" id="product-min-stock" value="5" required class="w-full px-3 py-2 bg-black border border-zinc-700 rounded-lg text-sm focus:ring-2 focus:ring-red-600 focus:outline-none text-white">
                     </div>
                 </div>
-                <div class="flex justify-end space-x-3 pt-4 border-t border-gray-200">
-                    <button type="button" id="cancel-product-btn" class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">Cancelar</button>
-                    <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium shadow">Salvar Produto</button>
+                <div class="flex justify-end space-x-3 pt-4 border-t border-zinc-800">
+                    <button type="button" id="cancel-product-btn" class="px-4 py-2 border border-zinc-700 rounded-lg text-sm font-medium text-zinc-300 hover:bg-zinc-800">Cancelar</button>
+                    <button type="submit" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium shadow">Salvar Produto</button>
                 </div>
             </form>
         </div>
     </div>
 
     <!-- Modal de Movimentação (Entrada / Baixa) -->
-    <div id="movement-modal" class="fixed inset-0 bg-gray-900 bg-opacity-50 modal-overlay z-40 hidden items-center justify-center p-4">
-        <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
-            <h3 id="movement-title" class="text-lg font-bold text-gray-900 mb-4">Movimentar Estoque</h3>
+    <div id="movement-modal" class="fixed inset-0 bg-black bg-opacity-80 modal-overlay z-40 hidden items-center justify-center p-4">
+        <div class="bg-zinc-900 border border-zinc-800 rounded-2xl shadow-xl max-w-md w-full p-6 text-white">
+            <h3 id="movement-title" class="text-lg font-bold text-white mb-4">Movimentar Estoque</h3>
             <form id="movement-form" class="space-y-4">
                 <input type="hidden" id="movement-product-id">
                 <input type="hidden" id="movement-type">
                 <div>
-                    <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Quantidade</label>
-                    <input type="number" min="1" id="movement-quantity" required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none font-bold text-lg">
+                    <label class="block text-xs font-semibold text-zinc-300 uppercase mb-1">Quantidade</label>
+                    <input type="number" min="1" id="movement-quantity" required class="w-full px-3 py-2 bg-black border border-zinc-700 rounded-lg text-sm focus:ring-2 focus:ring-red-600 focus:outline-none font-bold text-lg text-white">
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Justificativa / Motivo</label>
-                    <textarea id="movement-reason" rows="3" placeholder="Ex: Venda para cliente X, Reposição de fornecedor, Uso interno..." required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"></textarea>
+                    <label class="block text-xs font-semibold text-zinc-300 uppercase mb-1">Justificativa / Motivo</label>
+                    <textarea id="movement-reason" rows="3" placeholder="Ex: Venda para cliente X, Reposição de fornecedor, Uso interno..." required class="w-full px-3 py-2 bg-black border border-zinc-700 rounded-lg text-sm focus:ring-2 focus:ring-red-600 focus:outline-none text-white"></textarea>
                 </div>
-                <div class="flex justify-end space-x-3 pt-4 border-t border-gray-200">
-                    <button type="button" id="cancel-movement-btn" class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">Cancelar</button>
-                    <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium shadow">Confirmar</button>
+                <div class="flex justify-end space-x-3 pt-4 border-t border-zinc-800">
+                    <button type="button" id="cancel-movement-btn" class="px-4 py-2 border border-zinc-700 rounded-lg text-sm font-medium text-zinc-300 hover:bg-zinc-800">Cancelar</button>
+                    <button type="submit" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium shadow">Confirmar</button>
                 </div>
             </form>
         </div>
@@ -323,7 +323,6 @@
         const importDataBtn = document.getElementById('import-data');
         const importFileInput = document.getElementById('import-file');
 
-        // Função auxiliar para resgatar o token do usuário logado
         function getAuthToken() {
             return state.currentUser?.token || sessionStorage.getItem('estoque_token') || 'token-sessao-ativo';
         }
@@ -356,7 +355,7 @@
                     method: 'POST',
                     headers: { 
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}` // <--- ENVIANDO O TOKEN EXIGIDO PELA API
+                        'Authorization': `Bearer ${token}`
                     },
                     body: JSON.stringify({
                         user: state.currentUser,
@@ -428,7 +427,6 @@
                         return;
                     }
 
-                    // Garante que o usuário salvo inclua um token (caso o backend não envie, criamos um padrão)
                     state.currentUser = {
                         ...data.user,
                         token: data.user.token || 'token_' + userId + '_' + Date.now()
@@ -444,7 +442,6 @@
                 }
             });
 
-            // Controle da Modal de Senha
             if (openPasswordModalBtn) {
                 openPasswordModalBtn.addEventListener('click', () => {
                     authModal.classList.add('hidden');
@@ -585,7 +582,6 @@
                 const type = movementType.value;
                 const qty = parseInt(movementQuantity.value);
                 const reason = movementReason.value.trim();
-                const userName = state.currentUser ? state.currentUser.name : 'Anônimo';
 
                 const product = state.products.find(p => p.id === productId);
                 if (!product) return;
@@ -706,7 +702,7 @@
             });
 
             if (filtered.length === 0) {
-                productsTableBody.innerHTML = `<tr><td colspan="7" class="px-6 py-4 text-center text-gray-500">Nenhum produto encontrado.</td></tr>`;
+                productsTableBody.innerHTML = `<tr><td colspan="7" class="px-6 py-4 text-center text-zinc-500">Nenhum produto encontrado.</td></tr>`;
                 return;
             }
 
@@ -715,39 +711,39 @@
                 const qty = Number(p.quantity || 0);
                 const isLow = qty <= minStock;
                 const badgeClass = isLow 
-                    ? 'bg-red-100 text-red-800 border border-red-300' 
-                    : 'bg-green-100 text-green-800 border border-green-300';
+                    ? 'bg-red-950 text-red-400 border border-red-800' 
+                    : 'bg-zinc-800 text-zinc-300 border border-zinc-700';
                 
                 const subtotal = qty * Number(p.price || 0);
 
                 return `
-                    <tr class="hover:bg-gray-50 transition-colors">
+                    <tr class="hover:bg-zinc-800/50 transition-colors">
                         <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="font-medium text-gray-900">${escapeHtml(p.name)}</div>
-                            <div class="text-xs text-gray-500">SKU: ${escapeHtml(p.sku || 'N/D')}</div>
+                            <div class="font-medium text-white">${escapeHtml(p.name)}</div>
+                            <div class="text-xs text-zinc-400">SKU: ${escapeHtml(p.sku || 'N/D')}</div>
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${escapeHtml(p.category || 'Geral')}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-semibold">${Number(p.price || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-zinc-300">${escapeHtml(p.category || 'Geral')}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-white font-semibold">${Number(p.price || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${badgeClass}">
                                 ${qty} un ${isLow ? '(Baixo)' : ''}
                             </span>
-                            <div class="text-xs text-gray-400 mt-0.5">Mín: ${minStock}</div>
+                            <div class="text-xs text-zinc-500 mt-0.5">Mín: ${minStock}</div>
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-zinc-300">
                             ${subtotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                            <button onclick="openMovementModal('${p.id}', 'ENTRADA')" class="text-green-600 hover:text-green-900 bg-green-50 hover:bg-green-100 px-2.5 py-1 rounded transition-colors" title="Adicionar">
+                            <button onclick="openMovementModal('${p.id}', 'ENTRADA')" class="text-emerald-400 hover:text-emerald-300 bg-emerald-950/60 hover:bg-emerald-900/60 border border-emerald-900 px-2.5 py-1 rounded transition-colors" title="Adicionar">
                                 <i class="fa-solid fa-plus mr-1"></i>Entrada
                             </button>
-                            <button onclick="openMovementModal('${p.id}', 'SAIDA')" class="text-amber-600 hover:text-amber-900 bg-amber-50 hover:bg-amber-100 px-2.5 py-1 rounded transition-colors" title="Dar Baixa">
+                            <button onclick="openMovementModal('${p.id}', 'SAIDA')" class="text-red-400 hover:text-red-300 bg-red-950/60 hover:bg-red-900/60 border border-red-900 px-2.5 py-1 rounded transition-colors" title="Dar Baixa">
                                 <i class="fa-solid fa-minus mr-1"></i>Baixa
                             </button>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-                            <button onclick="editProduct('${p.id}')" class="text-indigo-600 hover:text-indigo-900" title="Editar"><i class="fa-solid fa-pen"></i></button>
-                            <button onclick="deleteProduct('${p.id}')" class="text-red-600 hover:text-red-900" title="Excluir"><i class="fa-solid fa-trash"></i></button>
+                            <button onclick="editProduct('${p.id}')" class="text-zinc-400 hover:text-white" title="Editar"><i class="fa-solid fa-pen"></i></button>
+                            <button onclick="deleteProduct('${p.id}')" class="text-red-500 hover:text-red-400" title="Excluir"><i class="fa-solid fa-trash"></i></button>
                         </td>
                     </tr>
                 `;
@@ -756,25 +752,25 @@
 
         function renderMovementsTable() {
             if (state.movements.length === 0) {
-                movementsTableBody.innerHTML = `<tr><td colspan="5" class="px-6 py-4 text-center text-gray-500">Nenhuma movimentação registrada.</td></tr>`;
+                movementsTableBody.innerHTML = `<tr><td colspan="5" class="px-6 py-4 text-center text-zinc-500">Nenhuma movimentação registrada.</td></tr>`;
                 return;
             }
 
             movementsTableBody.innerHTML = state.movements.slice(0, 50).map(m => {
                 const isEntrada = m.type === 'ENTRADA';
                 const typeBadge = isEntrada 
-                    ? '<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-800">Entrada</span>'
-                    : '<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800">Baixa</span>';
+                    ? '<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-950 text-emerald-400 border border-emerald-900">Entrada</span>'
+                    : '<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-950 text-red-400 border border-red-900">Baixa</span>';
                 
                 const dateFormatted = m.date ? new Date(m.date).toLocaleString('pt-BR') : '-';
 
                 return `
-                    <tr class="hover:bg-gray-50 transition-colors text-sm">
-                        <td class="px-6 py-4 whitespace-nowrap text-gray-500">${dateFormatted}</td>
-                        <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">${escapeHtml(m.product_name)}</td>
-                        <td class="px-6 py-4 whitespace-nowrap">${typeBadge} <span class="font-bold ml-1">${isEntrada ? '+' : '-'}${m.quantity}</span></td>
-                        <td class="px-6 py-4 whitespace-nowrap text-gray-700">${escapeHtml(m.reason || '-')}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-gray-600 font-semibold">${escapeHtml(m.user_name)}</td>
+                    <tr class="hover:bg-zinc-800/50 transition-colors text-sm">
+                        <td class="px-6 py-4 whitespace-nowrap text-zinc-400">${dateFormatted}</td>
+                        <td class="px-6 py-4 whitespace-nowrap font-medium text-white">${escapeHtml(m.product_name)}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">${typeBadge} <span class="font-bold ml-1 text-white">${isEntrada ? '+' : '-'}${m.quantity}</span></td>
+                        <td class="px-6 py-4 whitespace-nowrap text-zinc-300">${escapeHtml(m.reason || '-')}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-zinc-300 font-semibold">${escapeHtml(m.user_name)}</td>
                     </tr>
                 `;
             }).join('');
