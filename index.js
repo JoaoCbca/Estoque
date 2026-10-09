@@ -62,9 +62,8 @@ document.addEventListener('DOMContentLoaded', () => {
 // Buscar dados atualizados do servidor
 async function loadDataFromServer() {
     try {
-        const token = state.currentUser?.token || sessionStorage.getItem('estoque_token') || '';
         const response = await fetch('/api/data', {
-            headers: { 'Authorization': `Bearer ${token}` }
+            credentials: 'include' // <--- ESSENCIAL: Envia o cookie de sessão para o servidor reconhecer o login
         });
         if (!response.ok) return;
         const data = await response.json();
@@ -124,14 +123,11 @@ async function saveState() {
             date: m.date
         }));
 
-        // Recupera o token de autenticação para evitar o erro de token ausente
-        const token = state.currentUser?.token || sessionStorage.getItem('estoque_token') || '';
-
         await fetch('/api/sync', {
             method: 'POST',
+            credentials: 'include', // <--- ESSENCIAL: Garante que o cookie de sessão seja enviado na requisição POST
             headers: { 
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}` 
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify({
                 products: productsPayload,
@@ -170,6 +166,7 @@ function setupEventListeners() {
             try {
                 const response = await fetch('/api/auth', {
                     method: 'POST',
+                    credentials: 'include',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ userId, password })
                 });
@@ -185,6 +182,7 @@ function setupEventListeners() {
                 sessionStorage.setItem('estoque_current_user', JSON.stringify(result.user));
                 checkUser();
                 passwordInput.value = '';
+                loadDataFromServer(); // Recarrega os dados imediatamente após o login
             } catch (err) {
                 alert('Erro de conexão com o servidor.');
             }
@@ -234,13 +232,10 @@ function setupEventListeners() {
             const newPassword = document.getElementById('change-pass-new').value.trim();
 
             try {
-                const token = state.currentUser?.token || sessionStorage.getItem('estoque_token') || '';
                 const response = await fetch('/api/users/password', {
                     method: 'PUT',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ userId, oldPassword, newPassword })
                 });
 
