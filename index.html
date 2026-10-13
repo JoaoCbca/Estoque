@@ -134,7 +134,7 @@
                 </div>
                 <div class="bg-neutral-950 text-neutral-300 border border-neutral-800 p-3 rounded-lg"><i class="fa-solid fa-wallet text-lg"></i></div>
             </div>
-            <!-- Card de Estoque Baixo clicável para filtrar -->
+            <!-- Card de Estoque Baixo Clicável -->
             <div id="low-stock-card" class="bg-neutral-900 p-6 rounded-xl shadow-sm border border-neutral-800 flex items-center justify-between cursor-pointer hover:border-red-600 transition-all group" title="Clique para filtrar itens com estoque baixo">
                 <div>
                     <p class="text-xs font-semibold text-neutral-400 uppercase tracking-wider group-hover:text-red-400 transition-colors">Estoque Baixo</p>
@@ -162,7 +162,7 @@
                     <select id="category-filter" class="w-full sm:w-auto px-4 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-sm focus:ring-2 focus:ring-red-600 focus:outline-none text-white">
                         <option value="">Todas as Categorias</option>
                     </select>
-                    <!-- Botão de Filtro Rápido para Estoque Baixo -->
+                    <!-- Botão de Filtro Rápido -->
                     <button id="filter-low-stock-btn" class="w-full sm:w-auto px-4 py-2 bg-neutral-950 hover:bg-neutral-800 border border-neutral-800 text-neutral-300 rounded-lg text-sm font-medium transition-colors flex items-center justify-center space-x-2">
                         <i class="fa-solid fa-filter text-red-500"></i>
                         <span>Apenas Estoque Baixo</span>
@@ -284,14 +284,14 @@
         </div>
     </div>
 
-    <!-- Script JavaScript Completo com Filtro de Estoque Baixo -->
+    <!-- Script JavaScript Completo -->
     <script>
         let state = {
             currentUser: JSON.parse(sessionStorage.getItem('estoque_current_user')) || null,
             users: [],
             products: [],
             movements: [],
-            filterLowStockOnly: false // Estado do filtro de estoque baixo
+            filterLowStockOnly: false
         };
 
         const authModal = document.getElementById('auth-modal');
@@ -356,10 +356,10 @@
             }
 
             const toast = document.createElement('div');
-            toast.className = `pointer-events-auto flex items-center space-x-3 px-4 py-3 rounded-xl border shadow-lg transition-all duration-300 transform translate-y-2 opacity-0 ${bgColor}`;
+            toast.className = `pointer-events-auto flex items-start space-x-3 px-4 py-3 rounded-xl border shadow-lg transition-all duration-300 transform translate-y-2 opacity-0 max-w-sm ${bgColor}`;
             toast.innerHTML = `
-                <span class="text-lg">${icon}</span>
-                <p class="text-sm font-medium">${escapeHtml(message)}</p>
+                <span class="text-lg mt-0.5">${icon}</span>
+                <p class="text-sm font-medium leading-relaxed">${escapeHtml(message)}</p>
             `;
 
             container.appendChild(toast);
@@ -373,7 +373,7 @@
                 setTimeout(() => {
                     toast.remove();
                 }, 300);
-            }, 4000);
+            }, 5000);
         }
 
         function updateSyncStatus(status, message = '') {
@@ -525,24 +525,18 @@
                 const userId = authIdInput.value.trim();
                 const password = authPasswordInput.value;
 
-                console.log('1. Tentando logar com ID:', userId);
-
                 if (!/^\d{8}$/.test(userId)) {
                     showToast('O ID de acesso deve conter exatamente 8 números.', 'warning');
                     return;
                 }
 
                 try {
-                    console.log('2. Enviando fetch para /api/auth...');
                     const response = await fetch('/api/auth', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ userId, password })
                     });
-                    
-                    console.log('3. Resposta recebida. Status:', response.status);
                     const data = await response.json();
-                    console.log('4. Dados parseados:', data);
 
                     if (!response.ok) {
                         showToast(data.error || 'ID ou senha incorretos.', 'error');
@@ -557,7 +551,7 @@
                     checkUserSession();
                     loadDataFromServer();
                 } catch (err) {
-                    console.error("ERRO CAPTURADO NO CATCH:", err);
+                    console.error("Erro na autenticação:", err);
                     showToast("Erro de conexão com o servidor.", 'error');
                 }
             });
@@ -677,7 +671,6 @@
             searchInput.addEventListener('input', renderProductsTable);
             categoryFilter.addEventListener('change', renderProductsTable);
 
-            // Evento para alternar o filtro de estoque baixo pelo botão
             filterLowStockBtn.addEventListener('click', () => {
                 state.filterLowStockOnly = !state.filterLowStockOnly;
                 if (state.filterLowStockOnly) {
@@ -692,7 +685,6 @@
                 renderProductsTable();
             });
 
-            // Evento para alternar o filtro de estoque baixo clicando no Card de Estatísticas
             lowStockCard.addEventListener('click', () => {
                 state.filterLowStockOnly = !state.filterLowStockOnly;
                 if (state.filterLowStockOnly) {
@@ -804,7 +796,6 @@
                                       (p.sku && p.sku.toLowerCase().includes(searchTerm));
                 const matchesCategory = !selectedCategory || p.category === selectedCategory;
                 
-                // Aplica o filtro de estoque baixo se estiver ativo
                 const isLowStock = (p.quantity || 0) <= (p.min_stock || 5);
                 const matchesLowStock = !state.filterLowStockOnly || isLowStock;
 
@@ -856,6 +847,35 @@
                     </td>
                 `;
                 productsTableBody.appendChild(tr);
+            });
+        }
+
+        function renderMovementsTable() {
+            movementsTableBody.innerHTML = '';
+
+            if (state.movements.length === 0) {
+                movementsTableBody.innerHTML = `<tr><td colspan="5" class="px-6 py-4 text-center text-sm text-neutral-500">Nenhuma movimentação registrada.</td></tr>`;
+                return;
+            }
+
+            state.movements.slice(0, 50).forEach(m => {
+                const dateObj = m.date ? new Date(m.date) : new Date();
+                const formattedDate = dateObj.toLocaleString('pt-BR');
+                const isEntrada = m.type === 'ENTRADA';
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-xs text-neutral-400">${formattedDate}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">${escapeHtml(m.product_name)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                        <span class="px-2 py-0.5 rounded text-xs font-semibold ${isEntrada ? 'bg-neutral-800 text-neutral-300' : 'bg-red-950/80 border border-red-900/50 text-red-400'}">
+                            ${isEntrada ? '+' : '-'}${m.quantity} (${m.type})
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 text-sm text-neutral-300 max-w-xs truncate" title="${escapeHtml(m.reason)}">${escapeHtml(m.reason)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-xs text-neutral-400">${escapeHtml(m.user_name)}</td>
+                `;
+                movementsTableBody.appendChild(tr);
             });
         }
 
