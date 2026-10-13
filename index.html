@@ -15,7 +15,7 @@
 </head>
 <body class="min-h-screen flex flex-col bg-[#0a0a0a] text-neutral-100">
 
-    <!-- Container Global para Toasts com z-index máximo para aparecer sobre a tela de login -->
+    <!-- Container Global para Toasts -->
     <div id="toast-container" class="fixed bottom-5 right-5 z-[9999] flex flex-col space-y-2 pointer-events-none"></div>
 
     <!-- Modal de Autenticação (Apenas Login Restrito) -->
@@ -557,13 +557,43 @@
             });
 
             logoutBtn.addEventListener('click', () => {
-                if (confirm('Deseja realmente sair da sua conta?')) {
+                const container = document.getElementById('toast-container');
+                if (!container) return;
+
+                const toast = document.createElement('div');
+                toast.className = `pointer-events-auto flex flex-col space-y-3 p-4 rounded-xl border shadow-xl bg-neutral-900 border-neutral-800 text-white transition-all duration-300 transform translate-y-2 opacity-0 max-w-xs`;
+                toast.innerHTML = `
+                    <div class="flex items-center space-x-3">
+                        <i class="fa-solid fa-triangle-exclamation text-amber-500 text-lg"></i>
+                        <p class="text-sm font-medium">Deseja realmente sair da sua conta?</p>
+                    </div>
+                    <div class="flex space-x-2 pt-1">
+                        <button id="toast-confirm-logout" class="flex-1 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold py-1.5 rounded transition-colors">Sim, Sair</button>
+                        <button id="toast-cancel-logout" class="flex-1 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-xs font-semibold py-1.5 rounded transition-colors">Cancelar</button>
+                    </div>
+                `;
+
+                container.appendChild(toast);
+
+                setTimeout(() => {
+                    toast.classList.remove('translate-y-2', 'opacity-0');
+                }, 10);
+
+                document.getElementById('toast-confirm-logout').addEventListener('click', () => {
+                    toast.classList.add('translate-y-2', 'opacity-0');
+                    setTimeout(() => toast.remove(), 300);
+
                     state.currentUser = null;
                     sessionStorage.removeItem('estoque_current_user');
                     sessionStorage.removeItem('estoque_token');
                     checkUserSession();
                     showToast('Sessão encerrada com sucesso.', 'warning');
-                }
+                });
+
+                document.getElementById('toast-cancel-logout').addEventListener('click', () => {
+                    toast.classList.add('translate-y-2', 'opacity-0');
+                    setTimeout(() => toast.remove(), 300);
+                });
             });
 
             newProductBtn.addEventListener('click', () => {
