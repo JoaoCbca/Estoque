@@ -269,6 +269,8 @@
             </form>
         </div>
     </div>
+            <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-2 pointer-events-none">
+    </div>
 
     <!-- Script JavaScript Completo -->
     <script>
@@ -357,7 +359,7 @@
                 });
                 const data = await response.json();
                 if (!response.ok) {
-                    alert(data.error || 'Erro ao sincronizar.');
+                    showToast(data.error || 'Erro ao sincronizar.');
                 }
             } catch (error) {
                 console.error("Erro ao sincronizar com o servidor:", error);
@@ -403,7 +405,7 @@
                 const password = authPasswordInput.value;
 
                 if (!/^\d{8}$/.test(userId)) {
-                    alert('O ID de acesso deve conter exatamente 8 números.');
+                    showToast('O ID de acesso deve conter exatamente 8 números.');
                     return;
                 }
 
@@ -416,7 +418,7 @@
                     const data = await response.json();
 
                     if (!response.ok) {
-                        alert(data.error || 'ID ou senha incorretos.');
+                        showToast(data.error || 'ID ou senha incorretos.');
                         return;
                     }
 
@@ -429,7 +431,7 @@
                     loadDataFromServer();
                 } catch (err) {
                     console.error("Erro na autenticação:", err);
-                    alert("Erro de conexão com o servidor.");
+                    showToast("Erro de conexão com o servidor.");
                 }
             });
 
@@ -469,18 +471,18 @@
                         const result = await response.json();
 
                         if (!response.ok) {
-                            alert(result.error || 'Erro ao alterar a senha.');
+                            showToast(result.error || 'Erro ao alterar a senha.');
                             return;
                         }
 
-                        alert(result.message || 'Senha alterada com sucesso!');
+                        showToast(result.message || 'Senha alterada com sucesso!');
                         passwordChangeForm.reset();
                         passwordModal.classList.add('hidden');
                         passwordModal.classList.remove('flex');
                         authModal.classList.remove('hidden');
                         authModal.classList.add('flex');
                     } catch (err) {
-                        alert('Erro de conexão com o servidor.');
+                        showToast('Erro de conexão com o servidor.');
                     }
                 });
             }
@@ -495,7 +497,7 @@
 
             newProductBtn.addEventListener('click', () => {
                 if (!state.currentUser || state.currentUser.role !== 'admin') {
-                    alert('Apenas administradores podem cadastrar novos produtos.');
+                    showToast('Apenas administradores podem cadastrar novos produtos.');
                     return;
                 }
                 modalTitle.textContent = 'Novo Produto';
@@ -513,7 +515,7 @@
             productForm.addEventListener('submit', (e) => {
                 e.preventDefault();
                 if (!state.currentUser || state.currentUser.role !== 'admin') {
-                    alert('Ação negada. Apenas administradores podem gerenciar produtos.');
+                    showToast('Ação negada. Apenas administradores podem gerenciar produtos.');
                     return;
                 }
 
@@ -574,7 +576,7 @@
                 if (!product) return;
 
                 if (type === 'SAIDA' && product.quantity < qty) {
-                    alert(`Quantidade insuficiente! Disponível: ${product.quantity}`);
+                    showToast(`Quantidade insuficiente! Disponível: ${product.quantity}`);
                     return;
                 }
 
@@ -607,7 +609,7 @@
 
             importDataBtn.addEventListener('click', () => {
                 if (!state.currentUser || state.currentUser.role !== 'admin') {
-                    alert('Apenas administradores podem importar dados completos.');
+                    showToast('Apenas administradores podem importar dados completos.');
                     return;
                 }
                 importFileInput.click();
@@ -624,9 +626,9 @@
                         if (imported.movements) state.movements = imported.movements;
                         await saveState();
                         renderAll();
-                        alert('Dados importados com sucesso!');
+                        showToast('Dados importados com sucesso!');
                     } catch (err) {
-                        alert('Erro ao processar arquivo JSON.');
+                        showToast('Erro ao processar arquivo JSON.');
                     }
                 };
                 reader.readAsText(file);
@@ -780,7 +782,7 @@
 
         window.editProduct = function(productId) {
             if (!state.currentUser || state.currentUser.role !== 'admin') {
-                alert('Apenas administradores podem editar produtos.');
+                showToast('Apenas administradores podem editar produtos.');
                 return;
             }
             const product = state.products.find(p => p.id === productId);
@@ -801,7 +803,7 @@
 
         window.deleteProduct = function(productId) {
             if (!state.currentUser || state.currentUser.role !== 'admin') {
-                alert('Apenas administradores podem excluir produtos.');
+                showToast('Apenas administradores podem excluir produtos.');
                 return;
             }
             if (confirm('Tem certeza que deseja excluir este produto do estoque?')) {
@@ -809,6 +811,37 @@
                 saveState();
                 renderAll();
             }
+            function showToast(message, type = 'success') {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+
+    const toast = document.createElement('div');
+    toast.className = `pointer-events-auto flex items-center px-4 py-3 rounded-lg shadow-lg text-sm font-medium transition-all transform translate-y-2 opacity-0 duration-300 border ${
+        type === 'error' 
+            ? 'bg-red-950 text-red-200 border-red-800' 
+            : 'bg-neutral-900 text-white border-neutral-700'
+    }`;
+
+    // Ícone dependendo do tipo
+    const icon = type === 'error' 
+        ? '<i class="fa-solid fa-circle-exclamation text-red-500 mr-2.5"></i>' 
+        : '<i class="fa-solid fa-circle-check text-red-500 mr-2.5"></i>';
+
+    toast.innerHTML = `${icon}<span>${escapeHtml(message)}</span>`;
+    
+    container.appendChild(toast);
+
+    // Animação de entrada
+    setTimeout(() => {
+        toast.classList.remove('translate-y-2', 'opacity-0');
+    }, 10);
+
+    // Remove após 3 segundos
+    setTimeout(() => {
+        toast.classList.add('translate-y-2', 'opacity-0');
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
         };
     </script>
 </body>
