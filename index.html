@@ -15,6 +15,9 @@
 </head>
 <body class="min-h-screen flex flex-col bg-[#0a0a0a] text-neutral-100">
 
+    <!-- Container Global para Toasts (Notificações Flutuantes) -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-2 pointer-events-none"></div>
+
     <!-- Modal de Autenticação (Apenas Login Restrito) -->
     <div id="auth-modal" class="fixed inset-0 bg-black bg-opacity-85 modal-overlay z-50 flex items-center justify-center p-4">
         <div class="bg-neutral-900 rounded-2xl shadow-2xl max-w-md w-full p-8 transform transition-all border border-neutral-800">
@@ -269,10 +272,8 @@
             </form>
         </div>
     </div>
-            <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-2 pointer-events-none">
-    </div>
 
-    <!-- Script JavaScript Completo -->
+    <!-- Script JavaScript Completo Integrado com Toast -->
     <script>
         let state = {
             currentUser: JSON.parse(sessionStorage.getItem('estoque_current_user')) || null,
@@ -286,7 +287,6 @@
         const authIdInput = document.getElementById('auth-id-input');
         const authPasswordInput = document.getElementById('auth-password');
 
-        // Elementos da Modal de Senha
         const passwordModal = document.getElementById('password-modal');
         const openPasswordModalBtn = document.getElementById('open-password-modal');
         const cancelPassBtn = document.getElementById('cancel-pass-btn');
@@ -325,6 +325,43 @@
         const importDataBtn = document.getElementById('import-data');
         const importFileInput = document.getElementById('import-file');
 
+        // Função global de Toasts
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+
+            let bgColor = 'bg-neutral-900 border-neutral-800 text-white';
+            let icon = '<i class="fa-solid fa-circle-check text-emerald-500"></i>';
+
+            if (type === 'error') {
+                bgColor = 'bg-red-950/90 border-red-900/80 text-white';
+                icon = '<i class="fa-solid fa-circle-xmark text-red-500"></i>';
+            } else if (type === 'warning') {
+                bgColor = 'bg-amber-950/90 border-amber-900/80 text-white';
+                icon = '<i class="fa-solid fa-triangle-exclamation text-amber-500"></i>';
+            }
+
+            const toast = document.createElement('div');
+            toast.className = `pointer-events-auto flex items-center space-x-3 px-4 py-3 rounded-xl border shadow-lg transition-all duration-300 transform translate-y-2 opacity-0 ${bgColor}`;
+            toast.innerHTML = `
+                <span class="text-lg">${icon}</span>
+                <p class="text-sm font-medium">${escapeHtml(message)}</p>
+            `;
+
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.add('translate-y-2', 'opacity-0');
+                setTimeout(() => {
+                    toast.remove();
+                }, 300);
+            }, 4000);
+        }
+
         async function loadDataFromServer() {
             try {
                 const response = await fetch('/api/data');
@@ -342,9 +379,7 @@
 
         async function saveState() {
             try {
-                // Recupera o token salvo no login para autorizar a requisição
                 const token = sessionStorage.getItem('estoque_token');
-
                 const response = await fetch('/api/sync', {
                     method: 'POST',
                     headers: { 
@@ -359,7 +394,7 @@
                 });
                 const data = await response.json();
                 if (!response.ok) {
-                    alert(data.error || 'Erro ao sincronizar.');
+                    showToast(data.error || 'Erro ao sincronizar.', 'error');
                 }
             } catch (error) {
                 console.error("Erro ao sincronizar com o servidor:", error);
@@ -391,7 +426,6 @@
                 authModal.classList.remove('hidden');
                 authModal.classList.add('flex');
             } else {
-                const roleLabel = state.currentUser.role === 'admin' ? 'Administrador' : 'Usuário Comum';
                 currentUserSpan.textContent = state.currentUser.name;
                 authModal.classList.add('hidden');
                 authModal.classList.remove('flex');
@@ -399,43 +433,6 @@
         }
 
         function setupEventListeners() {
-            authForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const userId = authIdInput.value.trim();
-                const password = authPasswordInput.value;
-
-                if (!/^\d{8}$/.test(userId)) {
-                    alert('O ID de acesso deve conter exatamente 8 números.');
-                    return;
-                }
-
-                try {
-                    const response = await fetch('/api/auth', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ userId, password })
-                    });
-                    const data = await response.json();
-
-                    if (!response.ok) {
-                        alert(data.error || 'ID ou senha incorretos.');
-                        return;
-                    }
-
-                    // SALVA O TOKEN E O USUÁRIO CORRETAMENTE
-                    sessionStorage.setItem('estoque_token', data.token);
-                    sessionStorage.setItem('estoque_current_user', JSON.stringify(data.user));
-                    state.currentUser = data.user;
-
-                    checkUserSession();
-                    loadDataFromServer();
-                } catch (err) {
-                    console.error("Erro na autenticação:", err);
-                    alert("Erro de conexão com o servidor.");
-                }
-            });
-
-            // Controle da Modal de Senha
             if (openPasswordModalBtn) {
                 openPasswordModalBtn.addEventListener('click', () => {
                     authModal.classList.add('hidden');
@@ -471,33 +468,70 @@
                         const result = await response.json();
 
                         if (!response.ok) {
-                            alert(result.error || 'Erro ao alterar a senha.');
+                            showToast(result.error || 'Erro ao alterar a senha.', 'error');
                             return;
                         }
 
-                        alert(result.message || 'Senha alterada com sucesso!');
+                        showToast(result.message || 'Senha alterada com sucesso!', 'success');
                         passwordChangeForm.reset();
                         passwordModal.classList.add('hidden');
                         passwordModal.classList.remove('flex');
                         authModal.classList.remove('hidden');
                         authModal.classList.add('flex');
                     } catch (err) {
-                        alert('Erro de conexão com o servidor.');
+                        showToast('Erro de conexão com o servidor.', 'error');
                     }
                 });
             }
+
+            authForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const userId = authIdInput.value.trim();
+                const password = authPasswordInput.value;
+
+                if (!/^\d{8}$/.test(userId)) {
+                    showToast('O ID de acesso deve conter exatamente 8 números.', 'warning');
+                    return;
+                }
+
+                try {
+                    const response = await fetch('/api/auth', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ userId, password })
+                    });
+                    const data = await response.json();
+
+                    if (!response.ok) {
+                        showToast(data.error || 'ID ou senha incorretos.', 'error');
+                        return;
+                    }
+
+                    sessionStorage.setItem('estoque_token', data.token);
+                    sessionStorage.setItem('estoque_current_user', JSON.stringify(data.user));
+                    state.currentUser = data.user;
+
+                    showToast(`Bem-vindo, ${data.user.name}!`, 'success');
+                    checkUserSession();
+                    loadDataFromServer();
+                } catch (err) {
+                    showToast("Erro de conexão com o servidor.", 'error');
+                }
+            });
 
             logoutBtn.addEventListener('click', () => {
                 if (confirm('Deseja realmente sair da sua conta?')) {
                     state.currentUser = null;
                     sessionStorage.removeItem('estoque_current_user');
+                    sessionStorage.removeItem('estoque_token');
                     checkUserSession();
+                    showToast('Sessão encerrada com sucesso.', 'warning');
                 }
             });
 
             newProductBtn.addEventListener('click', () => {
                 if (!state.currentUser || state.currentUser.role !== 'admin') {
-                    alert('Apenas administradores podem cadastrar novos produtos.');
+                    showToast('Apenas administradores podem cadastrar novos produtos.', 'warning');
                     return;
                 }
                 modalTitle.textContent = 'Novo Produto';
@@ -515,7 +549,7 @@
             productForm.addEventListener('submit', (e) => {
                 e.preventDefault();
                 if (!state.currentUser || state.currentUser.role !== 'admin') {
-                    alert('Ação negada. Apenas administradores podem gerenciar produtos.');
+                    showToast('Ação negada. Apenas administradores.', 'error');
                     return;
                 }
 
@@ -542,6 +576,7 @@
                             addMovementRecord(id, name, diff > 0 ? 'ENTRADA' : 'SAIDA', Math.abs(diff), `Ajuste manual por Admin (${userName})`);
                         }
                     }
+                    showToast('Produto atualizado com sucesso!', 'success');
                 } else {
                     const newProduct = {
                         id: 'prod_' + Date.now(),
@@ -552,6 +587,7 @@
                     if (quantity > 0) {
                         addMovementRecord(newProduct.id, name, 'ENTRADA', quantity, `Estoque inicial cadastrado por Admin (${userName})`);
                     }
+                    showToast('Produto cadastrado com sucesso!', 'success');
                 }
 
                 saveState();
@@ -576,7 +612,7 @@
                 if (!product) return;
 
                 if (type === 'SAIDA' && product.quantity < qty) {
-                    alert(`Quantidade insuficiente! Disponível: ${product.quantity}`);
+                    showToast(`Quantidade insuficiente! Disponível: ${product.quantity}`, 'error');
                     return;
                 }
 
@@ -592,6 +628,7 @@
                 movementModal.classList.add('hidden');
                 movementModal.classList.remove('flex');
                 renderAll();
+                showToast(`Movimentação de ${type.toLowerCase()} registrada com sucesso!`, 'success');
             });
 
             searchInput.addEventListener('input', renderProductsTable);
@@ -605,11 +642,12 @@
                 document.body.appendChild(downloadAnchor);
                 downloadAnchor.click();
                 downloadAnchor.remove();
+                showToast('Dados exportados com sucesso!', 'success');
             });
 
             importDataBtn.addEventListener('click', () => {
                 if (!state.currentUser || state.currentUser.role !== 'admin') {
-                    alert('Apenas administradores podem importar dados completos.');
+                    showToast('Apenas administradores podem importar dados.', 'warning');
                     return;
                 }
                 importFileInput.click();
@@ -626,9 +664,9 @@
                         if (imported.movements) state.movements = imported.movements;
                         await saveState();
                         renderAll();
-                        alert('Dados importados com sucesso!');
+                        showToast('Dados importados com sucesso!', 'success');
                     } catch (err) {
-                        alert('Erro ao processar arquivo JSON.');
+                        showToast('Erro ao processar arquivo JSON.', 'error');
                     }
                 };
                 reader.readAsText(file);
@@ -685,26 +723,23 @@
         }
 
         function renderProductsTable() {
-    const searchTerm = searchInput.value.toLowerCase();
-    const selectedCategory = categoryFilter.value;
+            const searchTerm = searchInput.value.toLowerCase();
+            const selectedCategory = categoryFilter.value;
 
-    const filtered = state.products.filter(p => {
-        const matchesSearch = (p.name && p.name.toLowerCase().includes(searchTerm)) || 
-                            (p.sku && p.sku.toLowerCase().includes(searchTerm));
-        const matchesCategory = !selectedCategory || p.category === selectedCategory;
-        return matchesSearch && matchesCategory;
-    });
+            const filtered = state.products.filter(p => {
+                const matchesSearch = (p.name && p.name.toLowerCase().includes(searchTerm)) || 
+                                      (p.sku && p.sku.toLowerCase().includes(searchTerm));
+                const matchesCategory = !selectedCategory || p.category === selectedCategory;
+                return matchesSearch && matchesCategory;
+            });
 
-    // ---> ORDENAÇÃO AQUI <---
-    // Ordena os produtos por SKU (código) de forma alfabética/crescente:
-    filtered.sort((a, b) => {
-        const skuA = (a.sku || '').toString().toLowerCase();
-        const skuB = (b.sku || '').toString().toLowerCase();
-        return skuA.localeCompare(skuB, 'pt-BR', { numeric: true });
-    });
+            filtered.sort((a, b) => {
+                const skuA = (a.sku || '').toString().toLowerCase();
+                const skuB = (b.sku || '').toString().toLowerCase();
+                return skuA.localeCompare(skuB, 'pt-BR', { numeric: true });
+            });
 
-    productsTableBody.innerHTML = '';
-    // ... restante do código da tabela ...
+            productsTableBody.innerHTML = '';
 
             if (filtered.length === 0) {
                 productsTableBody.innerHTML = `<tr><td colspan="7" class="px-6 py-4 text-center text-sm text-neutral-500">Nenhum produto encontrado.</td></tr>`;
@@ -791,7 +826,7 @@
 
         window.editProduct = function(productId) {
             if (!state.currentUser || state.currentUser.role !== 'admin') {
-                alert('Apenas administradores podem editar produtos.');
+                showToast('Apenas administradores podem editar produtos.', 'warning');
                 return;
             }
             const product = state.products.find(p => p.id === productId);
@@ -812,13 +847,14 @@
 
         window.deleteProduct = function(productId) {
             if (!state.currentUser || state.currentUser.role !== 'admin') {
-                alert('Apenas administradores podem excluir produtos.');
+                showToast('Apenas administradores podem excluir produtos.', 'warning');
                 return;
             }
             if (confirm('Tem certeza que deseja excluir este produto do estoque?')) {
                 state.products = state.products.filter(p => p.id !== productId);
                 saveState();
                 renderAll();
+                showToast('Produto excluído com sucesso!', 'success');
             }
         };
     </script>
