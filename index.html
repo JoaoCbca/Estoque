@@ -920,14 +920,12 @@
                 const formattedDate = dateObj.toLocaleString('pt-BR');
                 const isEntrada = m.type === 'ENTRADA';
 
-                // Coluna 1: Apenas Quantidade e Tipo
                 const qtyHtml = `
                     <span class="px-2.5 py-1 rounded text-xs font-semibold ${isEntrada ? 'bg-neutral-800 text-neutral-200' : 'bg-red-950/80 border border-red-900/50 text-red-400'}">
                         ${isEntrada ? '+' : '-'}${m.quantity} un (${m.type})
                     </span>
                 `;
 
-                // Coluna 2: Apenas Preço e Variação
                 let priceHtml = '<span class="text-neutral-500 text-xs">Apenas Saída (S/Custo)</span>';
                 if (isEntrada && m.unit_price !== null && m.unit_price !== undefined) {
                     const priceFormatted = (m.unit_price || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -942,7 +940,7 @@
                             <div class="text-sm font-semibold text-white">${priceFormatted}</div>
                             <div class="flex items-center mt-1">
                                 <span class="px-2 py-0.5 rounded text-[10px] font-bold border ${badgeColor}">
-                                    ${icon}${Math.abs(varVal).toFixed(1)%}% (${(m.old_price).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })})
+                                    ${icon}${Math.abs(varVal).toFixed(1)}% (${(m.old_price).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })})
                                 </span>
                             </div>
                         `;
