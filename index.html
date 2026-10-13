@@ -15,8 +15,8 @@
 </head>
 <body class="min-h-screen flex flex-col bg-[#0a0a0a] text-neutral-100">
 
-    <!-- Container Global para Toasts Centralizados no Topo -->
-    <div id="toast-container" class="fixed top-5 left-1/2 -translate-x-1/2 z-[9999] flex flex-col items-center space-y-2 pointer-events-none w-full max-w-md px-4"></div>
+    <!-- Container Global para Toasts Normais (Canto Inferior Direito) -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-[9999] flex flex-col space-y-2 pointer-events-none"></div>
 
     <!-- Modal de Autenticação (Apenas Login Restrito) -->
     <div id="auth-modal" class="fixed inset-0 bg-black bg-opacity-85 modal-overlay z-50 flex items-center justify-center p-4">
@@ -356,8 +356,7 @@
             }
 
             const toast = document.createElement('div');
-            // Toast centralizado com animação suave de descida (-translate-y-2 para 0)
-            toast.className = `pointer-events-auto flex items-start space-x-3 px-4 py-3 rounded-xl border shadow-xl transition-all duration-300 transform -translate-y-2 opacity-0 w-full ${bgColor}`;
+            toast.className = `pointer-events-auto flex items-start space-x-3 px-4 py-3 rounded-xl border shadow-lg transition-all duration-300 transform translate-y-2 opacity-0 max-w-sm ${bgColor}`;
             toast.innerHTML = `
                 <span class="text-lg mt-0.5">${icon}</span>
                 <p class="text-sm font-medium leading-relaxed">${escapeHtml(message)}</p>
@@ -366,11 +365,11 @@
             container.appendChild(toast);
 
             setTimeout(() => {
-                toast.classList.remove('-translate-y-2', 'opacity-0');
+                toast.classList.remove('translate-y-2', 'opacity-0');
             }, 10);
 
             setTimeout(() => {
-                toast.classList.add('-translate-y-2', 'opacity-0');
+                toast.classList.add('translate-y-2', 'opacity-0');
                 setTimeout(() => {
                     toast.remove();
                 }, 300);
@@ -558,31 +557,34 @@
             });
 
             logoutBtn.addEventListener('click', () => {
-                const container = document.getElementById('toast-container');
-                if (!container) return;
-
-                const toast = document.createElement('div');
-                toast.className = `pointer-events-auto flex flex-col space-y-3 p-4 rounded-xl border shadow-xl bg-neutral-900 border-neutral-800 text-white transition-all duration-300 transform -translate-y-2 opacity-0 w-full`;
-                toast.innerHTML = `
-                    <div class="flex items-center space-x-3">
-                        <i class="fa-solid fa-triangle-exclamation text-amber-500 text-lg"></i>
-                        <p class="text-sm font-medium">Deseja realmente sair da sua conta?</p>
-                    </div>
-                    <div class="flex space-x-2 pt-1">
-                        <button id="toast-confirm-logout" class="flex-1 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold py-1.5 rounded transition-colors">Sim, Sair</button>
-                        <button id="toast-cancel-logout" class="flex-1 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-xs font-semibold py-1.5 rounded transition-colors">Cancelar</button>
+                const overlay = document.createElement('div');
+                overlay.className = `fixed inset-0 bg-black/85 modal-overlay z-[9999] flex items-center justify-center p-4 transition-all duration-300 opacity-0`;
+                overlay.innerHTML = `
+                    <div class="bg-neutral-900 border border-neutral-800 rounded-2xl p-6 max-w-sm w-full shadow-2xl transform scale-95 transition-transform duration-300 text-center space-y-4">
+                        <div class="w-14 h-14 bg-amber-950/80 text-amber-500 rounded-full flex items-center justify-center mx-auto text-xl border border-amber-900/50">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-white mb-1">Encerrar Sessão</h3>
+                            <p class="text-sm text-neutral-400">Deseja realmente sair da sua conta?</p>
+                        </div>
+                        <div class="flex space-x-3 pt-2">
+                            <button id="modal-cancel-logout" class="flex-1 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 font-semibold py-2.5 rounded-lg text-sm transition-colors">Cancelar</button>
+                            <button id="modal-confirm-logout" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold py-2.5 rounded-lg text-sm shadow transition-colors">Sim, Sair</button>
+                        </div>
                     </div>
                 `;
 
-                container.appendChild(toast);
+                document.body.appendChild(overlay);
 
                 setTimeout(() => {
-                    toast.classList.remove('-translate-y-2', 'opacity-0');
+                    overlay.classList.remove('opacity-0');
+                    overlay.querySelector('div').classList.remove('scale-95');
                 }, 10);
 
-                document.getElementById('toast-confirm-logout').addEventListener('click', () => {
-                    toast.classList.add('-translate-y-2', 'opacity-0');
-                    setTimeout(() => toast.remove(), 300);
+                document.getElementById('modal-confirm-logout').addEventListener('click', () => {
+                    overlay.classList.add('opacity-0');
+                    setTimeout(() => overlay.remove(), 300);
 
                     state.currentUser = null;
                     sessionStorage.removeItem('estoque_current_user');
@@ -591,9 +593,9 @@
                     showToast('Sessão encerrada com sucesso.', 'warning');
                 });
 
-                document.getElementById('toast-cancel-logout').addEventListener('click', () => {
-                    toast.classList.add('-translate-y-2', 'opacity-0');
-                    setTimeout(() => toast.remove(), 300);
+                document.getElementById('modal-cancel-logout').addEventListener('click', () => {
+                    overlay.classList.add('opacity-0');
+                    setTimeout(() => overlay.remove(), 300);
                 });
             });
 
