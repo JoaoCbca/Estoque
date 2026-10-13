@@ -439,30 +439,40 @@
                 }
 
                 try {
-                    const response = await fetch('/api/auth', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ userId, password })
-                    });
-                    const data = await response.json();
+    const response = await fetch('/api/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, password })
+    });
 
-                    if (!response.ok) {
-                        showToast(data.error || 'ID ou senha incorretos.', 'error');
-                        return;
-                    }
+    // Tenta converter para JSON de forma segura
+    let data;
+    try {
+        data = await response.json();
+    } catch (parseError) {
+        data = { error: 'Erro inesperado ao processar resposta do servidor.' };
+    }
 
-                    sessionStorage.setItem('estoque_token', data.token);
-                    sessionStorage.setItem('estoque_current_user', JSON.stringify(data.user));
-                    state.currentUser = data.user;
+    if (!response.ok) {
+        // Exibe a mensagem exata retornada pelo backend ou uma padrão
+        const errorMessage = data.error || data.message || 'ID ou senha incorretos.';
+        console.warn('Erro de autenticação retornado:', errorMessage);
+        showToast(errorMessage, 'error');
+        return;
+    }
 
-                    showToast('Login realizado com sucesso!', 'success');
-                    checkUserSession();
-                    loadDataFromServer();
-                } catch (err) {
-                    console.error("Erro na autenticação:", err);
-                    showToast("Erro de conexão com o servidor.", 'error');
-                }
-            });
+    sessionStorage.setItem('estoque_token', data.token);
+    sessionStorage.setItem('estoque_current_user', JSON.stringify(data.user));
+    state.currentUser = data.user;
+
+    showToast('Login realizado com sucesso!', 'success');
+    checkUserSession();
+    loadDataFromServer();
+
+} catch (err) {
+    console.error("Erro crítico na autenticação (Rede/Fetch):", err);
+    showToast("Erro de conexão com o servidor.", 'error');
+}
 
             if (openPasswordModalBtn) {
                 openPasswordModalBtn.addEventListener('click', () => {
