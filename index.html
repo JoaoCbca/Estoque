@@ -15,8 +15,8 @@
 </head>
 <body class="min-h-screen flex flex-col bg-[#0a0a0a] text-neutral-100">
 
-    <!-- Container Global para Toasts -->
-    <div id="toast-container" class="fixed bottom-5 right-5 z-[9999] flex flex-col space-y-2 pointer-events-none"></div>
+    <!-- Container Global para Toasts Centralizados no Topo -->
+    <div id="toast-container" class="fixed top-5 left-1/2 -translate-x-1/2 z-[9999] flex flex-col items-center space-y-2 pointer-events-none w-full max-w-md px-4"></div>
 
     <!-- Modal de Autenticação (Apenas Login Restrito) -->
     <div id="auth-modal" class="fixed inset-0 bg-black bg-opacity-85 modal-overlay z-50 flex items-center justify-center p-4">
@@ -356,7 +356,8 @@
             }
 
             const toast = document.createElement('div');
-            toast.className = `pointer-events-auto flex items-start space-x-3 px-4 py-3 rounded-xl border shadow-lg transition-all duration-300 transform translate-y-2 opacity-0 max-w-sm ${bgColor}`;
+            // Toast centralizado com animação suave de descida (-translate-y-2 para 0)
+            toast.className = `pointer-events-auto flex items-start space-x-3 px-4 py-3 rounded-xl border shadow-xl transition-all duration-300 transform -translate-y-2 opacity-0 w-full ${bgColor}`;
             toast.innerHTML = `
                 <span class="text-lg mt-0.5">${icon}</span>
                 <p class="text-sm font-medium leading-relaxed">${escapeHtml(message)}</p>
@@ -365,11 +366,11 @@
             container.appendChild(toast);
 
             setTimeout(() => {
-                toast.classList.remove('translate-y-2', 'opacity-0');
+                toast.classList.remove('-translate-y-2', 'opacity-0');
             }, 10);
 
             setTimeout(() => {
-                toast.classList.add('translate-y-2', 'opacity-0');
+                toast.classList.add('-translate-y-2', 'opacity-0');
                 setTimeout(() => {
                     toast.remove();
                 }, 300);
@@ -561,7 +562,7 @@
                 if (!container) return;
 
                 const toast = document.createElement('div');
-                toast.className = `pointer-events-auto flex flex-col space-y-3 p-4 rounded-xl border shadow-xl bg-neutral-900 border-neutral-800 text-white transition-all duration-300 transform translate-y-2 opacity-0 max-w-xs`;
+                toast.className = `pointer-events-auto flex flex-col space-y-3 p-4 rounded-xl border shadow-xl bg-neutral-900 border-neutral-800 text-white transition-all duration-300 transform -translate-y-2 opacity-0 w-full`;
                 toast.innerHTML = `
                     <div class="flex items-center space-x-3">
                         <i class="fa-solid fa-triangle-exclamation text-amber-500 text-lg"></i>
@@ -576,11 +577,11 @@
                 container.appendChild(toast);
 
                 setTimeout(() => {
-                    toast.classList.remove('translate-y-2', 'opacity-0');
+                    toast.classList.remove('-translate-y-2', 'opacity-0');
                 }, 10);
 
                 document.getElementById('toast-confirm-logout').addEventListener('click', () => {
-                    toast.classList.add('translate-y-2', 'opacity-0');
+                    toast.classList.add('-translate-y-2', 'opacity-0');
                     setTimeout(() => toast.remove(), 300);
 
                     state.currentUser = null;
@@ -591,7 +592,7 @@
                 });
 
                 document.getElementById('toast-cancel-logout').addEventListener('click', () => {
-                    toast.classList.add('translate-y-2', 'opacity-0');
+                    toast.classList.add('-translate-y-2', 'opacity-0');
                     setTimeout(() => toast.remove(), 300);
                 });
             });
