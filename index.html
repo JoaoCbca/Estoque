@@ -15,8 +15,8 @@
 </head>
 <body class="min-h-screen flex flex-col bg-[#0a0a0a] text-neutral-100">
 
-    <!-- Container Global para Toasts (Notificações Flutuantes) -->
-    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-2 pointer-events-none"></div>
+    <!-- Container Global para Toasts com z-index máximo para aparecer sobre a tela de login -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-[9999] flex flex-col space-y-2 pointer-events-none"></div>
 
     <!-- Modal de Autenticação (Apenas Login Restrito) -->
     <div id="auth-modal" class="fixed inset-0 bg-black bg-opacity-85 modal-overlay z-50 flex items-center justify-center p-4">
