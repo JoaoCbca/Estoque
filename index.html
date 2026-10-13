@@ -525,25 +525,30 @@
                 const userId = authIdInput.value.trim();
                 const password = authPasswordInput.value;
 
+                console.log('1. Tentando logar com ID:', userId);
+
                 if (!/^\d{8}$/.test(userId)) {
                     showToast('O ID de acesso deve conter exatamente 8 números.', 'warning');
                     return;
                 }
 
                 try {
+                    console.log('2. Enviando fetch para /api/auth...');
                     const response = await fetch('/api/auth', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ userId, password })
                     });
+                    
+                    console.log('3. Resposta recebida. Status:', response.status);
                     const data = await response.json();
+                    console.log('4. Dados parseados:', data);
 
                     if (!response.ok) {
                         showToast(data.error || 'ID ou senha incorretos.', 'error');
                         return;
                     }
 
-                    // SALVA O TOKEN E O USUÁRIO CORRETAMENTE
                     sessionStorage.setItem('estoque_token', data.token);
                     sessionStorage.setItem('estoque_current_user', JSON.stringify(data.user));
                     state.currentUser = data.user;
@@ -552,19 +557,7 @@
                     checkUserSession();
                     loadDataFromServer();
                 } catch (err) {
-                    console.error("Erro na autenticação:", err);
-                    showToast("Erro de conexão com o servidor.", 'error');
-                }
-            });
-
-                    sessionStorage.setItem('estoque_token', data.token);
-                    sessionStorage.setItem('estoque_current_user', JSON.stringify(data.user));
-                    state.currentUser = data.user;
-
-                    showToast(`Bem-vindo, ${data.user.name}!`, 'success');
-                    checkUserSession();
-                    loadDataFromServer();
-                } catch (err) {
+                    console.error("ERRO CAPTURADO NO CATCH:", err);
                     showToast("Erro de conexão com o servidor.", 'error');
                 }
             });
