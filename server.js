@@ -236,7 +236,7 @@ app.get('/api/data', async (req, res) => {
     }
 });
 
-// Rota /api/sync protegida por Token JWT para permitir apenas administradores
+// Rota /api/sync protegida por Token JWT (liberada para qualquer usuário autenticado: admin ou comum)
 app.post('/api/sync', async (req, res) => {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
@@ -246,11 +246,11 @@ app.post('/api/sync', async (req, res) => {
     }
 
     try {
-        // Valida o token e extrai as informações do usuário
+        // Valida o token e extrai as informações do usuário (removida a restrição exclusiva de admin)
         const decoded = jwt.verify(token, JWT_SECRET);
 
-        if (!decoded || decoded.role !== 'admin') {
-            return res.status(403).json({ error: 'Acesso negado. Apenas administradores podem importar ou sincronizar dados.' });
+        if (!decoded) {
+            return res.status(403).json({ error: 'Acesso negado. Sessão inválida.' });
         }
 
         const { products, movements } = req.body;
