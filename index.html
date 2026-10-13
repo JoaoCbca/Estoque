@@ -340,9 +340,15 @@
 
         async function saveState() {
             try {
+                // Recupera o token salvo no login para autorizar a requisição
+                const token = sessionStorage.getItem('estoque_token');
+
                 const response = await fetch('/api/sync', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}` // <--- ADICIONADO AQUI!
+                    },
                     body: JSON.stringify({
                         user: state.currentUser,
                         products: state.products,
@@ -414,8 +420,10 @@
                         return;
                     }
 
-                    state.currentUser = data.user;
+                    // SALVA O TOKEN E O USUÁRIO CORRETAMENTE
+                    sessionStorage.setItem('estoque_token', data.token); // <--- ADICIONADO AQUI!
                     sessionStorage.setItem('estoque_current_user', JSON.stringify(data.user));
+                    state.currentUser = data.user;
 
                     checkUserSession();
                     loadDataFromServer();
