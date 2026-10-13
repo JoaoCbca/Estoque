@@ -543,6 +543,20 @@
                         return;
                     }
 
+                    // SALVA O TOKEN E O USUÁRIO CORRETAMENTE
+                    sessionStorage.setItem('estoque_token', data.token);
+                    sessionStorage.setItem('estoque_current_user', JSON.stringify(data.user));
+                    state.currentUser = data.user;
+
+                    showToast(`Bem-vindo, ${data.user.name}!`, 'success');
+                    checkUserSession();
+                    loadDataFromServer();
+                } catch (err) {
+                    console.error("Erro na autenticação:", err);
+                    showToast("Erro de conexão com o servidor.", 'error');
+                }
+            });
+
                     sessionStorage.setItem('estoque_token', data.token);
                     sessionStorage.setItem('estoque_current_user', JSON.stringify(data.user));
                     state.currentUser = data.user;
