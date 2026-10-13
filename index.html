@@ -685,17 +685,26 @@
         }
 
         function renderProductsTable() {
-            const searchTerm = searchInput.value.toLowerCase();
-            const selectedCategory = categoryFilter.value;
+    const searchTerm = searchInput.value.toLowerCase();
+    const selectedCategory = categoryFilter.value;
 
-            const filtered = state.products.filter(p => {
-                const matchesSearch = (p.name && p.name.toLowerCase().includes(searchTerm)) || 
-                                    (p.sku && p.sku.toLowerCase().includes(searchTerm));
-                const matchesCategory = !selectedCategory || p.category === selectedCategory;
-                return matchesSearch && matchesCategory;
-            });
+    const filtered = state.products.filter(p => {
+        const matchesSearch = (p.name && p.name.toLowerCase().includes(searchTerm)) || 
+                            (p.sku && p.sku.toLowerCase().includes(searchTerm));
+        const matchesCategory = !selectedCategory || p.category === selectedCategory;
+        return matchesSearch && matchesCategory;
+    });
 
-            productsTableBody.innerHTML = '';
+    // ---> ORDENAÇÃO AQUI <---
+    // Ordena os produtos por SKU (código) de forma alfabética/crescente:
+    filtered.sort((a, b) => {
+        const skuA = (a.sku || '').toString().toLowerCase();
+        const skuB = (b.sku || '').toString().toLowerCase();
+        return skuA.localeCompare(skuB, 'pt-BR', { numeric: true });
+    });
+
+    productsTableBody.innerHTML = '';
+    // ... restante do código da tabela ...
 
             if (filtered.length === 0) {
                 productsTableBody.innerHTML = `<tr><td colspan="7" class="px-6 py-4 text-center text-sm text-neutral-500">Nenhum produto encontrado.</td></tr>`;
