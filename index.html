@@ -15,9 +15,6 @@
 </head>
 <body class="min-h-screen flex flex-col bg-[#0a0a0a] text-neutral-100">
 
-    <!-- Container de Notificações Toast -->
-    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-2 pointer-events-none"></div>
-
     <!-- Modal de Autenticação (Apenas Login Restrito) -->
     <div id="auth-modal" class="fixed inset-0 bg-black bg-opacity-85 modal-overlay z-50 flex items-center justify-center p-4">
         <div class="bg-neutral-900 rounded-2xl shadow-2xl max-w-md w-full p-8 transform transition-all border border-neutral-800">
@@ -89,7 +86,7 @@
                     <i class="fa-solid fa-boxes-stacked text-xl"></i>
                 </div>
                 <div>
-                    <h1 class="text-xl font-bold text-white tracking-wide">Estoque Colaborativo</h1>
+                    <h1 class="text-xl font-bold text-white tracking-wide">Estoque</h1>
                     <p class="text-xs text-neutral-400">Controle de Entradas e Baixas</p>
                 </div>
             </div>
@@ -272,6 +269,8 @@
             </form>
         </div>
     </div>
+            <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-2 pointer-events-none">
+    </div>
 
     <!-- Script JavaScript Completo -->
     <script>
@@ -326,36 +325,6 @@
         const importDataBtn = document.getElementById('import-data');
         const importFileInput = document.getElementById('import-file');
 
-        // Função de Notificações Flutuantes (Toast)
-        function showToast(message, type = 'success') {
-            const container = document.getElementById('toast-container');
-            if (!container) return;
-
-            const toast = document.createElement('div');
-            toast.className = `pointer-events-auto flex items-center px-4 py-3 rounded-lg shadow-lg text-sm font-medium transition-all transform translate-y-2 opacity-0 duration-300 border ${
-                type === 'error' 
-                    ? 'bg-red-950 text-red-200 border-red-800' 
-                    : 'bg-neutral-900 text-white border-neutral-700'
-            }`;
-
-            const icon = type === 'error' 
-                ? '<i class="fa-solid fa-circle-exclamation text-red-500 mr-2.5"></i>' 
-                : '<i class="fa-solid fa-circle-check text-red-500 mr-2.5"></i>';
-
-            toast.innerHTML = `${icon}<span>${escapeHtml(message)}</span>`;
-            
-            container.appendChild(toast);
-
-            setTimeout(() => {
-                toast.classList.remove('translate-y-2', 'opacity-0');
-            }, 10);
-
-            setTimeout(() => {
-                toast.classList.add('translate-y-2', 'opacity-0');
-                setTimeout(() => toast.remove(), 300);
-            }, 3000);
-        }
-
         async function loadDataFromServer() {
             try {
                 const response = await fetch('/api/data');
@@ -373,6 +342,7 @@
 
         async function saveState() {
             try {
+                // Recupera o token salvo no login para autorizar a requisição
                 const token = sessionStorage.getItem('estoque_token');
 
                 const response = await fetch('/api/sync', {
@@ -389,7 +359,7 @@
                 });
                 const data = await response.json();
                 if (!response.ok) {
-                    showToast(data.error || 'Erro ao sincronizar.', 'error');
+                    alert(data.error || 'Erro ao sincronizar.');
                 }
             } catch (error) {
                 console.error("Erro ao sincronizar com o servidor:", error);
@@ -421,6 +391,7 @@
                 authModal.classList.remove('hidden');
                 authModal.classList.add('flex');
             } else {
+                const roleLabel = state.currentUser.role === 'admin' ? 'Administrador' : 'Usuário Comum';
                 currentUserSpan.textContent = state.currentUser.name;
                 authModal.classList.add('hidden');
                 authModal.classList.remove('flex');
@@ -434,46 +405,37 @@
                 const password = authPasswordInput.value;
 
                 if (!/^\d{8}$/.test(userId)) {
-                    showToast('O ID de acesso deve conter exatamente 8 números.', 'error');
+                    alert('O ID de acesso deve conter exatamente 8 números.');
                     return;
                 }
 
                 try {
-    const response = await fetch('/api/auth', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, password })
-    });
+                    const response = await fetch('/api/auth', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ userId, password })
+                    });
+                    const data = await response.json();
 
-    // Tenta converter para JSON de forma segura
-    let data;
-    try {
-        data = await response.json();
-    } catch (parseError) {
-        data = { error: 'Erro inesperado ao processar resposta do servidor.' };
-    }
+                    if (!response.ok) {
+                        alert(data.error || 'ID ou senha incorretos.');
+                        return;
+                    }
 
-    if (!response.ok) {
-        // Exibe a mensagem exata retornada pelo backend ou uma padrão
-        const errorMessage = data.error || data.message || 'ID ou senha incorretos.';
-        console.warn('Erro de autenticação retornado:', errorMessage);
-        showToast(errorMessage, 'error');
-        return;
-    }
+                    // SALVA O TOKEN E O USUÁRIO CORRETAMENTE
+                    sessionStorage.setItem('estoque_token', data.token);
+                    sessionStorage.setItem('estoque_current_user', JSON.stringify(data.user));
+                    state.currentUser = data.user;
 
-    sessionStorage.setItem('estoque_token', data.token);
-    sessionStorage.setItem('estoque_current_user', JSON.stringify(data.user));
-    state.currentUser = data.user;
+                    checkUserSession();
+                    loadDataFromServer();
+                } catch (err) {
+                    console.error("Erro na autenticação:", err);
+                    alert("Erro de conexão com o servidor.");
+                }
+            });
 
-    showToast('Login realizado com sucesso!', 'success');
-    checkUserSession();
-    loadDataFromServer();
-
-} catch (err) {
-    console.error("Erro crítico na autenticação (Rede/Fetch):", err);
-    showToast("Erro de conexão com o servidor.", 'error');
-}
-
+            // Controle da Modal de Senha
             if (openPasswordModalBtn) {
                 openPasswordModalBtn.addEventListener('click', () => {
                     authModal.classList.add('hidden');
@@ -509,18 +471,18 @@
                         const result = await response.json();
 
                         if (!response.ok) {
-                            showToast(result.error || 'Erro ao alterar a senha.', 'error');
+                            alert(result.error || 'Erro ao alterar a senha.');
                             return;
                         }
 
-                        showToast(result.message || 'Senha alterada com sucesso!', 'success');
+                        alert(result.message || 'Senha alterada com sucesso!');
                         passwordChangeForm.reset();
                         passwordModal.classList.add('hidden');
                         passwordModal.classList.remove('flex');
                         authModal.classList.remove('hidden');
                         authModal.classList.add('flex');
                     } catch (err) {
-                        showToast('Erro de conexão com o servidor.', 'error');
+                        alert('Erro de conexão com o servidor.');
                     }
                 });
             }
@@ -530,13 +492,12 @@
                     state.currentUser = null;
                     sessionStorage.removeItem('estoque_current_user');
                     checkUserSession();
-                    showToast('Você saiu da sua conta.', 'success');
                 }
             });
 
             newProductBtn.addEventListener('click', () => {
                 if (!state.currentUser || state.currentUser.role !== 'admin') {
-                    showToast('Apenas administradores podem cadastrar novos produtos.', 'error');
+                    alert('Apenas administradores podem cadastrar novos produtos.');
                     return;
                 }
                 modalTitle.textContent = 'Novo Produto';
@@ -554,7 +515,7 @@
             productForm.addEventListener('submit', (e) => {
                 e.preventDefault();
                 if (!state.currentUser || state.currentUser.role !== 'admin') {
-                    showToast('Ação negada. Apenas administradores podem gerenciar produtos.', 'error');
+                    alert('Ação negada. Apenas administradores podem gerenciar produtos.');
                     return;
                 }
 
@@ -597,7 +558,6 @@
                 productModal.classList.add('hidden');
                 productModal.classList.remove('flex');
                 renderAll();
-                showToast('Produto salvo com sucesso!', 'success');
             });
 
             cancelMovementBtn.addEventListener('click', () => {
@@ -616,7 +576,7 @@
                 if (!product) return;
 
                 if (type === 'SAIDA' && product.quantity < qty) {
-                    showToast(`Quantidade insuficiente! Disponível: ${product.quantity}`, 'error');
+                    alert(`Quantidade insuficiente! Disponível: ${product.quantity}`);
                     return;
                 }
 
@@ -632,7 +592,6 @@
                 movementModal.classList.add('hidden');
                 movementModal.classList.remove('flex');
                 renderAll();
-                showToast('Movimentação registrada com sucesso!', 'success');
             });
 
             searchInput.addEventListener('input', renderProductsTable);
@@ -646,12 +605,11 @@
                 document.body.appendChild(downloadAnchor);
                 downloadAnchor.click();
                 downloadAnchor.remove();
-                showToast('Dados exportados com sucesso!', 'success');
             });
 
             importDataBtn.addEventListener('click', () => {
                 if (!state.currentUser || state.currentUser.role !== 'admin') {
-                    showToast('Apenas administradores podem importar dados completos.', 'error');
+                    alert('Apenas administradores podem importar dados completos.');
                     return;
                 }
                 importFileInput.click();
@@ -668,9 +626,9 @@
                         if (imported.movements) state.movements = imported.movements;
                         await saveState();
                         renderAll();
-                        showToast('Dados importados com sucesso!', 'success');
+                        alert('Dados importados com sucesso!');
                     } catch (err) {
-                        showToast('Erro ao processar arquivo JSON.', 'error');
+                        alert('Erro ao processar arquivo JSON.');
                     }
                 };
                 reader.readAsText(file);
@@ -727,24 +685,26 @@
         }
 
         function renderProductsTable() {
-            const searchTerm = searchInput.value.toLowerCase();
-            const selectedCategory = categoryFilter.value;
+    const searchTerm = searchInput.value.toLowerCase();
+    const selectedCategory = categoryFilter.value;
 
-            const filtered = state.products.filter(p => {
-                const matchesSearch = (p.name && p.name.toLowerCase().includes(searchTerm)) || 
-                                    (p.sku && p.sku.toLowerCase().includes(searchTerm));
-                const matchesCategory = !selectedCategory || p.category === selectedCategory;
-                return matchesSearch && matchesCategory;
-            });
+    const filtered = state.products.filter(p => {
+        const matchesSearch = (p.name && p.name.toLowerCase().includes(searchTerm)) || 
+                            (p.sku && p.sku.toLowerCase().includes(searchTerm));
+        const matchesCategory = !selectedCategory || p.category === selectedCategory;
+        return matchesSearch && matchesCategory;
+    });
 
-            // Ordena os produtos por SKU (código) em ordem crescente/alfabética
-            filtered.sort((a, b) => {
-                const skuA = (a.sku || '').toString().toLowerCase();
-                const skuB = (b.sku || '').toString().toLowerCase();
-                return skuA.localeCompare(skuB, 'pt-BR', { numeric: true });
-            });
+    // ---> ORDENAÇÃO AQUI <---
+    // Ordena os produtos por SKU (código) de forma alfabética/crescente:
+    filtered.sort((a, b) => {
+        const skuA = (a.sku || '').toString().toLowerCase();
+        const skuB = (b.sku || '').toString().toLowerCase();
+        return skuA.localeCompare(skuB, 'pt-BR', { numeric: true });
+    });
 
-            productsTableBody.innerHTML = '';
+    productsTableBody.innerHTML = '';
+    // ... restante do código da tabela ...
 
             if (filtered.length === 0) {
                 productsTableBody.innerHTML = `<tr><td colspan="7" class="px-6 py-4 text-center text-sm text-neutral-500">Nenhum produto encontrado.</td></tr>`;
@@ -831,7 +791,7 @@
 
         window.editProduct = function(productId) {
             if (!state.currentUser || state.currentUser.role !== 'admin') {
-                showToast('Apenas administradores podem editar produtos.', 'error');
+                alert('Apenas administradores podem editar produtos.');
                 return;
             }
             const product = state.products.find(p => p.id === productId);
@@ -852,14 +812,13 @@
 
         window.deleteProduct = function(productId) {
             if (!state.currentUser || state.currentUser.role !== 'admin') {
-                showToast('Apenas administradores podem excluir produtos.', 'error');
+                alert('Apenas administradores podem excluir produtos.');
                 return;
             }
             if (confirm('Tem certeza que deseja excluir este produto do estoque?')) {
                 state.products = state.products.filter(p => p.id !== productId);
                 saveState();
                 renderAll();
-                showToast('Produto excluído com sucesso!', 'success');
             }
         };
     </script>
