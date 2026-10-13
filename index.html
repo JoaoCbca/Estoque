@@ -197,8 +197,8 @@
         <!-- Seção de Histórico de Movimentações -->
         <div class="bg-neutral-900 rounded-xl shadow-sm border border-neutral-800 overflow-hidden">
             <div class="p-6 border-b border-neutral-800">
-                <h3 class="text-lg font-bold text-white"><i class="fa-solid fa-history mr-2 text-red-500"></i>Histórico de Movimentações e Variação de Preços</h3>
-                <p class="text-xs text-neutral-400 mt-0.5">Acompanhe entradas, baixas e o impacto percentual nas alterações de custos</p>
+                <h3 class="text-lg font-bold text-white"><i class="fa-solid fa-history mr-2 text-red-500"></i>Histórico de Movimentações (Qtd e Preços Separados)</h3>
+                <p class="text-xs text-neutral-400 mt-0.5">Visualize claramente a quantidade alterada e o comparativo de custo por entrada</p>
             </div>
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-neutral-800">
@@ -206,8 +206,8 @@
                         <tr>
                             <th class="px-6 py-3 text-left text-xs font-medium text-neutral-400 uppercase tracking-wider">Data / Hora</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-neutral-400 uppercase tracking-wider">Produto</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-neutral-400 uppercase tracking-wider">Tipo</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-neutral-400 uppercase tracking-wider">Preço Reg. / Variação</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-neutral-400 uppercase tracking-wider">Qtd Mexida</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-neutral-400 uppercase tracking-wider">Preço da Entrada / Variação</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-neutral-400 uppercase tracking-wider">Justificativa / Motivo</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-neutral-400 uppercase tracking-wider">Responsável</th>
                         </tr>
@@ -262,7 +262,7 @@
         </div>
     </div>
 
-    <!-- Modal de Movimentação (Entrada / Baixa com Preço Opcional para Comparação) -->
+    <!-- Modal de Movimentação -->
     <div id="movement-modal" class="fixed inset-0 bg-black bg-opacity-85 modal-overlay z-40 hidden items-center justify-center p-4">
         <div class="bg-neutral-900 rounded-2xl shadow-xl max-w-md w-full p-6 border border-neutral-800">
             <h3 id="movement-title" class="text-lg font-bold text-white mb-4">Movimentar Estoque</h3>
@@ -276,7 +276,7 @@
                         <input type="number" min="1" id="movement-quantity" required class="w-full px-3 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-sm focus:ring-2 focus:ring-red-600 focus:outline-none font-bold text-white">
                     </div>
                     <div id="movement-price-container">
-                        <label class="block text-xs font-semibold text-neutral-300 uppercase mb-1">Preço Unitário (R$)</label>
+                        <label class="block text-xs font-semibold text-neutral-300 uppercase mb-1">Preço Un. (R$)</label>
                         <input type="number" step="0.01" min="0" id="movement-unit-price" class="w-full px-3 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-sm focus:ring-2 focus:ring-red-600 focus:outline-none font-bold text-white" placeholder="Opcional">
                     </div>
                 </div>
@@ -293,7 +293,7 @@
         </div>
     </div>
 
-    <!-- Script JavaScript Completo com Histórico de Preço e Variação Percentual -->
+    <!-- Script JavaScript Completo -->
     <script>
         let state = {
             currentUser: JSON.parse(sessionStorage.getItem('estoque_current_user')) || null,
@@ -707,7 +707,7 @@
                         if (oldPrice > 0) {
                             priceVariationPercent = ((newPrice - oldPrice) / oldPrice) * 100;
                         }
-                        product.price = newPrice; // Atualiza o preço atual do produto
+                        product.price = newPrice;
                     }
                 } else {
                     product.quantity -= qty;
@@ -920,7 +920,15 @@
                 const formattedDate = dateObj.toLocaleString('pt-BR');
                 const isEntrada = m.type === 'ENTRADA';
 
-                let priceHtml = '<span class="text-neutral-500 text-xs">-</span>';
+                // Coluna 1: Apenas Quantidade e Tipo
+                const qtyHtml = `
+                    <span class="px-2.5 py-1 rounded text-xs font-semibold ${isEntrada ? 'bg-neutral-800 text-neutral-200' : 'bg-red-950/80 border border-red-900/50 text-red-400'}">
+                        ${isEntrada ? '+' : '-'}${m.quantity} un (${m.type})
+                    </span>
+                `;
+
+                // Coluna 2: Apenas Preço e Variação
+                let priceHtml = '<span class="text-neutral-500 text-xs">Apenas Saída (S/Custo)</span>';
                 if (isEntrada && m.unit_price !== null && m.unit_price !== undefined) {
                     const priceFormatted = (m.unit_price || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
                     
@@ -932,14 +940,14 @@
                         
                         priceHtml = `
                             <div class="text-sm font-semibold text-white">${priceFormatted}</div>
-                            <div class="flex items-center mt-0.5">
+                            <div class="flex items-center mt-1">
                                 <span class="px-2 py-0.5 rounded text-[10px] font-bold border ${badgeColor}">
-                                    ${icon}${Math.abs(varVal).toFixed(1)}% vs anterior (${(m.old_price).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })})
+                                    ${icon}${Math.abs(varVal).toFixed(1)%}% (${(m.old_price).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })})
                                 </span>
                             </div>
                         `;
                     } else {
-                        priceHtml = `<div class="text-sm font-semibold text-white">${priceFormatted}</div><div class="text-[10px] text-neutral-400">Preço inicial / Sem alteração</div>`;
+                        priceHtml = `<div class="text-sm font-semibold text-white">${priceFormatted}</div><div class="text-[10px] text-neutral-400">Preço base inicial</div>`;
                     }
                 }
 
@@ -947,11 +955,7 @@
                 tr.innerHTML = `
                     <td class="px-6 py-4 whitespace-nowrap text-xs text-neutral-400">${formattedDate}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">${escapeHtml(m.product_name)}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm">
-                        <span class="px-2 py-0.5 rounded text-xs font-semibold ${isEntrada ? 'bg-neutral-800 text-neutral-300' : 'bg-red-950/80 border border-red-900/50 text-red-400'}">
-                            ${isEntrada ? '+' : '-'}${m.quantity} (${m.type})
-                        </span>
-                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">${qtyHtml}</td>
                     <td class="px-6 py-4 whitespace-nowrap">${priceHtml}</td>
                     <td class="px-6 py-4 text-sm text-neutral-300 max-w-xs truncate" title="${escapeHtml(m.reason)}">${escapeHtml(m.reason)}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-xs text-neutral-400">${escapeHtml(m.user_name)}</td>
