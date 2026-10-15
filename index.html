@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Controle de Estoque e Variação de Preço</title>
+    <title>Controle de Estoque</title>
     <!-- Tailwind CSS via CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome para Ícones -->
@@ -15,8 +15,8 @@
 </head>
 <body class="min-h-screen flex flex-col bg-[#0a0a0a] text-neutral-100">
 
-    <!-- Container Global para Toasts Normais (Canto Inferior Direito) -->
-    <div id="toast-container" class="fixed bottom-5 right-5 z-[9999] flex flex-col space-y-2 pointer-events-none"></div>
+    <!-- Container Global para Toasts (Notificações Flutuantes) -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-2 pointer-events-none"></div>
 
     <!-- Modal de Autenticação (Apenas Login Restrito) -->
     <div id="auth-modal" class="fixed inset-0 bg-black bg-opacity-85 modal-overlay z-50 flex items-center justify-center p-4">
@@ -89,7 +89,7 @@
                 </div>
                 <div>
                     <h1 class="text-xl font-bold text-white tracking-wide">Estoque</h1>
-                    <p class="text-xs text-neutral-400">Controle de Entradas, Baixas e Variação de Preço</p>
+                    <p class="text-xs text-neutral-400">Controle de Entradas e Baixas</p>
                 </div>
             </div>
             <div class="flex items-center space-x-4">
@@ -134,7 +134,7 @@
                 </div>
                 <div class="bg-neutral-950 text-neutral-300 border border-neutral-800 p-3 rounded-lg"><i class="fa-solid fa-wallet text-lg"></i></div>
             </div>
-            <!-- Card de Estoque Baixo Clicável -->
+            <!-- Card de Estoque Baixo clicável para filtrar -->
             <div id="low-stock-card" class="bg-neutral-900 p-6 rounded-xl shadow-sm border border-neutral-800 flex items-center justify-between cursor-pointer hover:border-red-600 transition-all group" title="Clique para filtrar itens com estoque baixo">
                 <div>
                     <p class="text-xs font-semibold text-neutral-400 uppercase tracking-wider group-hover:text-red-400 transition-colors">Estoque Baixo</p>
@@ -162,7 +162,7 @@
                     <select id="category-filter" class="w-full sm:w-auto px-4 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-sm focus:ring-2 focus:ring-red-600 focus:outline-none text-white">
                         <option value="">Todas as Categorias</option>
                     </select>
-                    <!-- Botão de Filtro Rápido -->
+                    <!-- Botão de Filtro Rápido para Estoque Baixo -->
                     <button id="filter-low-stock-btn" class="w-full sm:w-auto px-4 py-2 bg-neutral-950 hover:bg-neutral-800 border border-neutral-800 text-neutral-300 rounded-lg text-sm font-medium transition-colors flex items-center justify-center space-x-2">
                         <i class="fa-solid fa-filter text-red-500"></i>
                         <span>Apenas Estoque Baixo</span>
@@ -180,7 +180,7 @@
                         <tr>
                             <th class="px-6 py-3 text-left text-xs font-medium text-neutral-400 uppercase tracking-wider">Produto / SKU</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-neutral-400 uppercase tracking-wider">Categoria</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-neutral-400 uppercase tracking-wider">Preço Atual</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-neutral-400 uppercase tracking-wider">Preço Un.</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-neutral-400 uppercase tracking-wider">Qtd Atual</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-neutral-400 uppercase tracking-wider">Total</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-neutral-400 uppercase tracking-wider">Movimentar</th>
@@ -194,36 +194,11 @@
             </div>
         </div>
 
-        <!-- Seção de Histórico de Movimentações (Geral) -->
+        <!-- Seção separada de Histórico de Variação de Preços -->
         <div class="bg-neutral-900 rounded-xl shadow-sm border border-neutral-800 overflow-hidden">
             <div class="p-6 border-b border-neutral-800">
-                <h3 class="text-lg font-bold text-white"><i class="fa-solid fa-history mr-2 text-red-500"></i>Histórico de Movimentações</h3>
-                <p class="text-xs text-neutral-400 mt-0.5">Registro geral de entradas e baixas do estoque</p>
-            </div>
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-neutral-800">
-                    <thead class="bg-neutral-950">
-                        <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-neutral-400 uppercase tracking-wider">Data / Hora</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-neutral-400 uppercase tracking-wider">Produto</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-neutral-400 uppercase tracking-wider">Qtd</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-neutral-400 uppercase tracking-wider">Preço Unitário</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-neutral-400 uppercase tracking-wider">Justificativa / Motivo</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-neutral-400 uppercase tracking-wider">Responsável</th>
-                        </tr>
-                    </thead>
-                    <tbody id="movements-table-body" class="divide-y divide-neutral-800 bg-neutral-900">
-                        <!-- Preenchido via JS -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- SEÇÃO EXCLUSIVA: Histórico de Variação de Preço -->
-        <div class="bg-neutral-900 rounded-xl shadow-sm border border-neutral-800 overflow-hidden">
-            <div class="p-6 border-b border-neutral-800">
-                <h3 class="text-lg font-bold text-white"><i class="fa-solid fa-chart-line mr-2 text-emerald-500"></i>Histórico de Variação de Preço</h3>
-                <p class="text-xs text-neutral-400 mt-0.5">Auditoria exclusiva das flutuações e percentuais de preço de compra a cada lote</p>
+                <h3 class="text-lg font-bold text-white"><i class="fa-solid fa-chart-line mr-2 text-emerald-500"></i>Histórico de Variação de Preços</h3>
+                <p class="text-xs text-neutral-400 mt-0.5">Registro separado das alterações de preço dos produtos</p>
             </div>
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-neutral-800">
@@ -233,11 +208,35 @@
                             <th class="px-6 py-3 text-left text-xs font-medium text-neutral-400 uppercase tracking-wider">Produto</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-neutral-400 uppercase tracking-wider">Preço Anterior</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-neutral-400 uppercase tracking-wider">Novo Preço</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-neutral-400 uppercase tracking-wider">Variação %</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-neutral-400 uppercase tracking-wider">Motivo</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-neutral-400 uppercase tracking-wider">Responsável</th>
                         </tr>
                     </thead>
                     <tbody id="price-history-table-body" class="divide-y divide-neutral-800 bg-neutral-900">
+                        <!-- Preenchido via JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Seção de Histórico de Movimentações -->
+        <div class="bg-neutral-900 rounded-xl shadow-sm border border-neutral-800 overflow-hidden">
+            <div class="p-6 border-b border-neutral-800">
+                <h3 class="text-lg font-bold text-white"><i class="fa-solid fa-history mr-2 text-red-500"></i>Histórico de Movimentações (Entradas e Baixas)</h3>
+                <p class="text-xs text-neutral-400 mt-0.5">Registro colaborativo de todas as alterações feitas pela equipe</p>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-neutral-800">
+                    <thead class="bg-neutral-950">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-neutral-400 uppercase tracking-wider">Data / Hora</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-neutral-400 uppercase tracking-wider">Produto</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-neutral-400 uppercase tracking-wider">Tipo</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-neutral-400 uppercase tracking-wider">Justificativa / Observação</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-neutral-400 uppercase tracking-wider">Responsável</th>
+                        </tr>
+                    </thead>
+                    <tbody id="movements-table-body" class="divide-y divide-neutral-800 bg-neutral-900">
                         <!-- Preenchido via JS -->
                     </tbody>
                 </table>
@@ -287,28 +286,25 @@
         </div>
     </div>
 
-    <!-- Modal de Movimentação -->
+    <!-- Modal de Movimentação (Entrada / Baixa) -->
     <div id="movement-modal" class="fixed inset-0 bg-black bg-opacity-85 modal-overlay z-40 hidden items-center justify-center p-4">
         <div class="bg-neutral-900 rounded-2xl shadow-xl max-w-md w-full p-6 border border-neutral-800">
             <h3 id="movement-title" class="text-lg font-bold text-white mb-4">Movimentar Estoque</h3>
             <form id="movement-form" class="space-y-4">
                 <input type="hidden" id="movement-product-id">
                 <input type="hidden" id="movement-type">
-                
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-semibold text-neutral-300 uppercase mb-1">Quantidade</label>
-                        <input type="number" min="1" id="movement-quantity" required class="w-full px-3 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-sm focus:ring-2 focus:ring-red-600 focus:outline-none font-bold text-white">
-                    </div>
-                    <div id="movement-price-container">
-                        <label class="block text-xs font-semibold text-neutral-300 uppercase mb-1">Preço Unitário (R$)</label>
-                        <input type="number" step="0.01" min="0" id="movement-unit-price" class="w-full px-3 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-sm focus:ring-2 focus:ring-red-600 focus:outline-none font-bold text-white" placeholder="Ex: 4.50">
-                    </div>
+                <div id="movement-price-container" class="hidden">
+                    <label class="block text-xs font-semibold text-neutral-300 uppercase mb-1">Preço unitário da entrada (R$)</label>
+                    <input type="number" step="0.01" min="0" id="movement-price" disabled class="w-full px-3 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-sm focus:ring-2 focus:ring-red-600 focus:outline-none text-white">
+                    <p class="text-xs text-neutral-500 mt-1">Se o preço for diferente, ele será atualizado no produto e registrado no histórico.</p>
                 </div>
-
+                <div>
+                    <label class="block text-xs font-semibold text-neutral-300 uppercase mb-1">Quantidade</label>
+                    <input type="number" min="1" id="movement-quantity" required class="w-full px-3 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-sm focus:ring-2 focus:ring-red-600 focus:outline-none font-bold text-lg text-white">
+                </div>
                 <div>
                     <label class="block text-xs font-semibold text-neutral-300 uppercase mb-1">Justificativa / Motivo</label>
-                    <textarea id="movement-reason" rows="3" placeholder="Ex: Reposição de fornecedor, Ajuste de preço..." required class="w-full px-3 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-sm focus:ring-2 focus:ring-red-600 focus:outline-none text-white"></textarea>
+                    <textarea id="movement-reason" rows="3" placeholder="Ex: Venda para cliente X, Reposição de fornecedor, Uso interno..." required class="w-full px-3 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-sm focus:ring-2 focus:ring-red-600 focus:outline-none text-white"></textarea>
                 </div>
                 <div class="flex justify-end space-x-3 pt-4 border-t border-neutral-800">
                     <button type="button" id="cancel-movement-btn" class="px-4 py-2 border border-neutral-700 rounded-lg text-sm font-medium text-neutral-300 hover:bg-neutral-800">Cancelar</button>
@@ -318,14 +314,15 @@
         </div>
     </div>
 
-    <!-- Script JavaScript Completo -->
+    <!-- Script JavaScript Completo com Filtro de Estoque Baixo -->
     <script>
         let state = {
             currentUser: JSON.parse(sessionStorage.getItem('estoque_current_user')) || null,
             users: [],
             products: [],
             movements: [],
-            filterLowStockOnly: false
+            priceHistory: [],
+            filterLowStockOnly: false // Estado do filtro de estoque baixo
         };
 
         const authModal = document.getElementById('auth-modal');
@@ -354,7 +351,7 @@
         const movementProductId = document.getElementById('movement-product-id');
         const movementType = document.getElementById('movement-type');
         const movementQuantity = document.getElementById('movement-quantity');
-        const movementUnitPrice = document.getElementById('movement-unit-price');
+        const movementPrice = document.getElementById('movement-price');
         const movementPriceContainer = document.getElementById('movement-price-container');
         const movementReason = document.getElementById('movement-reason');
         const cancelMovementBtn = document.getElementById('cancel-movement-btn');
@@ -393,10 +390,10 @@
             }
 
             const toast = document.createElement('div');
-            toast.className = `pointer-events-auto flex items-start space-x-3 px-4 py-3 rounded-xl border shadow-lg transition-all duration-300 transform translate-y-2 opacity-0 max-w-sm ${bgColor}`;
+            toast.className = `pointer-events-auto flex items-center space-x-3 px-4 py-3 rounded-xl border shadow-lg transition-all duration-300 transform translate-y-2 opacity-0 ${bgColor}`;
             toast.innerHTML = `
-                <span class="text-lg mt-0.5">${icon}</span>
-                <p class="text-sm font-medium leading-relaxed">${escapeHtml(message)}</p>
+                <span class="text-lg">${icon}</span>
+                <p class="text-sm font-medium">${escapeHtml(message)}</p>
             `;
 
             container.appendChild(toast);
@@ -410,7 +407,7 @@
                 setTimeout(() => {
                     toast.remove();
                 }, 300);
-            }, 5000);
+            }, 4000);
         }
 
         function updateSyncStatus(status, message = '') {
@@ -437,6 +434,7 @@
                 
                 state.products = data.products || [];
                 state.movements = data.movements || [];
+                state.priceHistory = data.priceHistory || [];
                 state.users = data.users || [];
                 
                 renderAll();
@@ -458,7 +456,8 @@
                     body: JSON.stringify({
                         user: state.currentUser,
                         products: state.products,
-                        movements: state.movements
+                        movements: state.movements,
+                        priceHistory: state.priceHistory
                     })
                 });
                 const data = await response.json();
@@ -588,52 +587,18 @@
                     checkUserSession();
                     loadDataFromServer();
                 } catch (err) {
-                    console.error("Erro na autenticação:", err);
                     showToast("Erro de conexão com o servidor.", 'error');
                 }
             });
 
             logoutBtn.addEventListener('click', () => {
-                const overlay = document.createElement('div');
-                overlay.className = `fixed inset-0 bg-black/85 modal-overlay z-[9999] flex items-center justify-center p-4 transition-all duration-300 opacity-0`;
-                overlay.innerHTML = `
-                    <div class="bg-neutral-900 border border-neutral-800 rounded-2xl p-6 max-w-sm w-full shadow-2xl transform scale-95 transition-transform duration-300 text-center space-y-4">
-                        <div class="w-14 h-14 bg-amber-950/80 text-amber-500 rounded-full flex items-center justify-center mx-auto text-xl border border-amber-900/50">
-                            <i class="fa-solid fa-triangle-exclamation"></i>
-                        </div>
-                        <div>
-                            <h3 class="text-lg font-bold text-white mb-1">Encerrar Sessão</h3>
-                            <p class="text-sm text-neutral-400">Deseja realmente sair da sua conta?</p>
-                        </div>
-                        <div class="flex space-x-3 pt-2">
-                            <button id="modal-cancel-logout" class="flex-1 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 font-semibold py-2.5 rounded-lg text-sm transition-colors">Cancelar</button>
-                            <button id="modal-confirm-logout" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold py-2.5 rounded-lg text-sm shadow transition-colors">Sim, Sair</button>
-                        </div>
-                    </div>
-                `;
-
-                document.body.appendChild(overlay);
-
-                setTimeout(() => {
-                    overlay.classList.remove('opacity-0');
-                    overlay.querySelector('div').classList.remove('scale-95');
-                }, 10);
-
-                document.getElementById('modal-confirm-logout').addEventListener('click', () => {
-                    overlay.classList.add('opacity-0');
-                    setTimeout(() => overlay.remove(), 300);
-
+                if (confirm('Deseja realmente sair da sua conta?')) {
                     state.currentUser = null;
                     sessionStorage.removeItem('estoque_current_user');
                     sessionStorage.removeItem('estoque_token');
                     checkUserSession();
                     showToast('Sessão encerrada com sucesso.', 'warning');
-                });
-
-                document.getElementById('modal-cancel-logout').addEventListener('click', () => {
-                    overlay.classList.add('opacity-0');
-                    setTimeout(() => overlay.remove(), 300);
-                });
+                }
             });
 
             newProductBtn.addEventListener('click', () => {
@@ -672,15 +637,19 @@
                 if (id) {
                     const index = state.products.findIndex(p => p.id === id);
                     if (index !== -1) {
+                        const oldPrice = Number(state.products[index].price) || 0;
                         const oldQty = state.products[index].quantity;
                         state.products[index] = {
                             ...state.products[index],
                             name, sku, category, price, quantity, min_stock: minStock,
                             updated_at: new Date().toISOString()
                         };
+                        if (oldPrice !== price) {
+                            addPriceHistoryRecord(id, name, oldPrice, price, 'Preço alterado na edição do produto');
+                        }
                         if (oldQty !== quantity) {
                             const diff = quantity - oldQty;
-                            addMovementRecord(id, name, diff > 0 ? 'ENTRADA' : 'SAIDA', Math.abs(diff), price, `Ajuste manual por Admin (${userName})`, price, 0);
+                            addMovementRecord(id, name, diff > 0 ? 'ENTRADA' : 'SAIDA', Math.abs(diff), `Ajuste manual por Admin (${userName})`);
                         }
                     }
                     showToast('Produto atualizado com sucesso!', 'success');
@@ -692,7 +661,7 @@
                     };
                     state.products.push(newProduct);
                     if (quantity > 0) {
-                        addMovementRecord(newProduct.id, name, 'ENTRADA', quantity, price, `Estoque inicial cadastrado por Admin (${userName})`, 0, 0);
+                        addMovementRecord(newProduct.id, name, 'ENTRADA', quantity, `Estoque inicial cadastrado por Admin (${userName})`);
                     }
                     showToast('Produto cadastrado com sucesso!', 'success');
                 }
@@ -713,8 +682,8 @@
                 const productId = movementProductId.value;
                 const type = movementType.value;
                 const qty = parseInt(movementQuantity.value);
-                const newPrice = type === 'ENTRADA' ? parseFloat(movementUnitPrice.value) : null;
                 const reason = movementReason.value.trim();
+                const newPrice = Number(movementPrice.value);
 
                 const product = state.products.find(p => p.id === productId);
                 if (!product) return;
@@ -724,34 +693,23 @@
                     return;
                 }
 
-                let oldPrice = product.price || 0;
-                let priceVariationPercent = 0;
-
                 if (type === 'ENTRADA') {
+                    if (!Number.isFinite(newPrice) || newPrice < 0) {
+                        showToast('Informe um preço unitário válido para a entrada.', 'error');
+                        return;
+                    }
                     product.quantity += qty;
-                    if (!isNaN(newPrice) && newPrice >= 0) {
-                        if (oldPrice > 0) {
-                            priceVariationPercent = ((newPrice - oldPrice) / oldPrice) * 100;
-                        }
+                    const oldPrice = Number(product.price) || 0;
+                    if (oldPrice !== newPrice) {
                         product.price = newPrice;
+                        addPriceHistoryRecord(product.id, product.name, oldPrice, newPrice, reason);
                     }
                 } else {
                     product.quantity -= qty;
                 }
                 product.updated_at = new Date().toISOString();
 
-                // PASSANDO CORRETAMENTE OS PARÂMETROS oldPrice E priceVariationPercent
-                addMovementRecord(
-                    product.id, 
-                    product.name, 
-                    type, 
-                    qty, 
-                    type === 'ENTRADA' ? newPrice : null, 
-                    reason, 
-                    oldPrice, 
-                    priceVariationPercent
-                );
-
+                addMovementRecord(product.id, product.name, type, qty, reason);
                 saveState();
                 movementModal.classList.add('hidden');
                 movementModal.classList.remove('flex');
@@ -762,6 +720,7 @@
             searchInput.addEventListener('input', renderProductsTable);
             categoryFilter.addEventListener('change', renderProductsTable);
 
+            // Evento para alternar o filtro de estoque baixo pelo botão
             filterLowStockBtn.addEventListener('click', () => {
                 state.filterLowStockOnly = !state.filterLowStockOnly;
                 if (state.filterLowStockOnly) {
@@ -776,6 +735,7 @@
                 renderProductsTable();
             });
 
+            // Evento para alternar o filtro de estoque baixo clicando no Card de Estatísticas
             lowStockCard.addEventListener('click', () => {
                 state.filterLowStockOnly = !state.filterLowStockOnly;
                 if (state.filterLowStockOnly) {
@@ -818,6 +778,7 @@
                         const imported = JSON.parse(event.target.result);
                         if (imported.products) state.products = imported.products;
                         if (imported.movements) state.movements = imported.movements;
+                        if (Array.isArray(imported.priceHistory)) state.priceHistory = imported.priceHistory;
                         await saveState();
                         renderAll();
                         showToast('Dados importados com sucesso!', 'success');
@@ -829,21 +790,31 @@
             });
         }
 
-        function addMovementRecord(productId, productName, type, quantity, unitPrice, reason, oldPrice = 0, variation = 0) {
+        function addMovementRecord(productId, productName, type, quantity, reason) {
             const newMovement = {
                 id: 'mov_' + Date.now() + '_' + Math.random().toString(36).substring(2, 5),
                 product_id: productId,
                 product_name: productName,
                 type: type,
                 quantity: quantity,
-                unit_price: unitPrice,
-                old_price: oldPrice,
-                price_variation: variation,
                 reason: reason,
                 user_name: state.currentUser ? state.currentUser.name : 'Anônimo',
                 date: new Date().toISOString()
             };
             state.movements.unshift(newMovement);
+        }
+
+        function addPriceHistoryRecord(productId, productName, oldPrice, newPrice, reason) {
+            state.priceHistory.unshift({
+                id: 'price_' + Date.now() + '_' + Math.random().toString(36).substring(2, 5),
+                product_id: productId,
+                product_name: productName,
+                old_price: oldPrice,
+                new_price: newPrice,
+                reason: reason,
+                user_name: state.currentUser ? state.currentUser.name : 'Anônimo',
+                date: new Date().toISOString()
+            });
         }
 
         function renderAll() {
@@ -852,6 +823,54 @@
             renderProductsTable();
             renderMovementsTable();
             renderPriceHistoryTable();
+        }
+
+        function renderMovementsTable() {
+            movementsTableBody.innerHTML = '';
+
+            if (state.movements.length === 0) {
+                movementsTableBody.innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center text-sm text-neutral-500">Nenhuma movimentação registrada.</td></tr>';
+                return;
+            }
+
+            state.movements.slice(0, 50).forEach(movement => {
+                const date = movement.date ? new Date(movement.date).toLocaleString('pt-BR') : '-';
+                const typeClass = movement.type === 'ENTRADA' ? 'text-emerald-400' : 'text-red-400';
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-400">${escapeHtml(date)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">${escapeHtml(movement.product_name || '-')}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold ${typeClass}">${escapeHtml(movement.type || '-')} (${Number(movement.quantity) || 0})</td>
+                    <td class="px-6 py-4 text-sm text-neutral-300">${escapeHtml(movement.reason || '-')}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-400">${escapeHtml(movement.user_name || '-')}</td>
+                `;
+                movementsTableBody.appendChild(row);
+            });
+        }
+
+        function renderPriceHistoryTable() {
+            priceHistoryTableBody.innerHTML = '';
+
+            if (state.priceHistory.length === 0) {
+                priceHistoryTableBody.innerHTML = '<tr><td colspan="6" class="px-6 py-4 text-center text-sm text-neutral-500">Nenhuma variação de preço registrada.</td></tr>';
+                return;
+            }
+
+            state.priceHistory.forEach(record => {
+                const date = record.date ? new Date(record.date).toLocaleString('pt-BR') : '-';
+                const oldPrice = Number(record.old_price) || 0;
+                const newPrice = Number(record.new_price) || 0;
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-400">${escapeHtml(date)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">${escapeHtml(record.product_name || '-')}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-300">${oldPrice.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold ${newPrice < oldPrice ? 'text-emerald-400' : 'text-amber-400'}">${newPrice.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
+                    <td class="px-6 py-4 text-sm text-neutral-300">${escapeHtml(record.reason || '-')}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-400">${escapeHtml(record.user_name || '-')}</td>
+                `;
+                priceHistoryTableBody.appendChild(row);
+            });
         }
 
         function renderStats() {
@@ -891,6 +910,7 @@
                                       (p.sku && p.sku.toLowerCase().includes(searchTerm));
                 const matchesCategory = !selectedCategory || p.category === selectedCategory;
                 
+                // Aplica o filtro de estoque baixo se estiver ativo
                 const isLowStock = (p.quantity || 0) <= (p.min_stock || 5);
                 const matchesLowStock = !state.filterLowStockOnly || isLowStock;
 
@@ -945,92 +965,6 @@
             });
         }
 
-        function renderMovementsTable() {
-            movementsTableBody.innerHTML = '';
-
-            if (state.movements.length === 0) {
-                movementsTableBody.innerHTML = `<tr><td colspan="6" class="px-6 py-4 text-center text-sm text-neutral-500">Nenhuma movimentação registrada.</td></tr>`;
-                return;
-            }
-
-            state.movements.slice(0, 50).forEach(m => {
-                const dateObj = m.date ? new Date(m.date) : new Date();
-                const formattedDate = dateObj.toLocaleString('pt-BR');
-                const isEntrada = m.type === 'ENTRADA';
-
-                const qtyHtml = `
-                    <span class="px-2.5 py-1 rounded text-xs font-semibold ${isEntrada ? 'bg-neutral-800 text-neutral-200' : 'bg-red-950/80 border border-red-900/50 text-red-400'}">
-                        ${isEntrada ? '+' : '-'}${m.quantity} (${m.type})
-                    </span>
-                `;
-
-                // EXIBE CORRETAMENTE O PREÇO UNITÁRIO NA TABELA DE MOVIMENTAÇÕES
-                const priceFormatted = (m.unit_price !== null && m.unit_price !== undefined) 
-                    ? (m.unit_price).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) 
-                    : '<span class="text-neutral-500 text-xs">-</span>';
-
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td class="px-6 py-4 whitespace-nowrap text-xs text-neutral-400">${formattedDate}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">${escapeHtml(m.product_name)}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">${qtyHtml}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-white">${priceFormatted}</td>
-                    <td class="px-6 py-4 text-sm text-neutral-300 max-w-xs truncate" title="${escapeHtml(m.reason)}">${escapeHtml(m.reason)}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-xs text-neutral-400">${escapeHtml(m.user_name)}</td>
-                `;
-                movementsTableBody.appendChild(tr);
-            });
-        }
-
-        function renderPriceHistoryTable() {
-            priceHistoryTableBody.innerHTML = '';
-
-            // Filtra estritamente as entradas onde houve preço unitário definido
-            const priceMovements = state.movements.filter(m => m.type === 'ENTRADA' && m.unit_price !== null && m.unit_price !== undefined);
-
-            if (priceMovements.length === 0) {
-                priceHistoryTableBody.innerHTML = `<tr><td colspan="6" class="px-6 py-4 text-center text-sm text-neutral-500">Nenhum histórico de variação de preço registrado.</td></tr>`;
-                return;
-            }
-
-            priceMovements.slice(0, 50).forEach(m => {
-                const dateObj = m.date ? new Date(m.date) : new Date();
-                const formattedDate = dateObj.toLocaleString('pt-BR');
-
-                const oldPriceFormatted = (m.old_price && m.old_price > 0) 
-                    ? m.old_price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) 
-                    : 'R$ 0,00 (Base Inicial)';
-
-                const newPriceFormatted = (m.unit_price).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-
-                let varHtml = '<span class="text-neutral-500 text-xs">0,0%</span>';
-                if (m.old_price && m.old_price > 0 && m.price_variation !== 0) {
-                    const varVal = m.price_variation;
-                    const isUp = varVal > 0;
-                    // Se subiu, cor vermelha/alerta; se baixou, cor verde/sucesso
-                    const badgeColor = isUp ? 'bg-red-950/80 border-red-900 text-red-400' : 'bg-emerald-950/80 border-emerald-900 text-emerald-400';
-                    const icon = isUp ? '<i class="fa-solid fa-arrow-trend-up mr-1"></i>' : '<i class="fa-solid fa-arrow-trend-down mr-1"></i>';
-                    
-                    varHtml = `
-                        <span class="px-2.5 py-1 rounded text-xs font-bold border ${badgeColor}">
-                            ${icon}${Math.abs(varVal).toFixed(1)}%
-                        </span>
-                    `;
-                }
-
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td class="px-6 py-4 whitespace-nowrap text-xs text-neutral-400">${formattedDate}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">${escapeHtml(m.product_name)}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-300">${oldPriceFormatted}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-white">${newPriceFormatted}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">${varHtml}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-xs text-neutral-400">${escapeHtml(m.user_name)}</td>
-                `;
-                priceHistoryTableBody.appendChild(tr);
-            });
-        }
-
         window.openMovementModal = function(productId, type) {
             const product = state.products.find(p => p.id === productId);
             if (!product) return;
@@ -1039,18 +973,12 @@
             movementType.value = type;
             movementQuantity.value = '1';
             movementReason.value = '';
+            movementPrice.value = Number(product.price) || 0;
+            movementPrice.disabled = type !== 'ENTRADA';
+            movementPrice.required = type === 'ENTRADA';
+            movementPriceContainer.classList.toggle('hidden', type !== 'ENTRADA');
 
-            if (type === 'ENTRADA') {
-                movementPriceContainer.style.display = 'block';
-                movementUnitPrice.value = product.price || '';
-                movementUnitPrice.required = true;
-                movementTitle.textContent = `Registrar Entrada: ${product.name}`;
-            } else {
-                movementPriceContainer.style.display = 'none';
-                movementUnitPrice.required = false;
-                movementTitle.textContent = `Registrar Baixa: ${product.name}`;
-            }
-
+            movementTitle.textContent = type === 'ENTRADA' ? `Registrar Entrada: ${product.name}` : `Registrar Baixa: ${product.name}`;
             movementModal.classList.remove('hidden');
             movementModal.classList.add('flex');
         };
