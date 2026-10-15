@@ -731,7 +731,6 @@
                     product.quantity += qty;
                     if (!isNaN(newPrice) && newPrice >= 0) {
                         if (oldPrice > 0) {
-                            // Cálculo da variação percentual
                             priceVariationPercent = ((newPrice - oldPrice) / oldPrice) * 100;
                         }
                         product.price = newPrice;
@@ -985,7 +984,8 @@
         function renderPriceHistoryTable() {
             priceHistoryTableBody.innerHTML = '';
 
-            const priceMovements = state.movements.filter(m => m.type === 'ENTRADA' && m.unit_price !== null && m.unit_price !== undefined);
+            // Filtra todas as entradas de produtos para exibir no histórico de preços
+            const priceMovements = state.movements.filter(m => m.type === 'ENTRADA');
 
             if (priceMovements.length === 0) {
                 priceHistoryTableBody.innerHTML = `<tr><td colspan="6" class="px-6 py-4 text-center text-sm text-neutral-500">Nenhum histórico de variação de preço registrado.</td></tr>`;
@@ -996,15 +996,19 @@
                 const dateObj = m.date ? new Date(m.date) : new Date();
                 const formattedDate = dateObj.toLocaleString('pt-BR');
 
-                const oldPriceFormatted = (m.old_price && m.old_price > 0) 
-                    ? m.old_price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) 
+                const oldPrice = m.old_price || 0;
+                const newPrice = m.unit_price || 0;
+
+                const oldPriceFormatted = oldPrice > 0 
+                    ? oldPrice.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) 
                     : 'R$ 0,00 (Base Inicial)';
 
-                const newPriceFormatted = (m.unit_price).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+                const newPriceFormatted = newPrice.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
                 let varHtml = '<span class="text-neutral-500 text-xs">0,0%</span>';
-                if (m.old_price && m.old_price > 0 && m.price_variation !== 0) {
-                    const varVal = m.price_variation;
+                
+                if (oldPrice > 0 && newPrice > 0) {
+                    const varVal = ((newPrice - oldPrice) / oldPrice) * 100;
                     const isUp = varVal > 0;
                     const badgeColor = isUp ? 'bg-red-950/80 border-red-900 text-red-400' : 'bg-emerald-950/80 border-emerald-900 text-emerald-400';
                     const icon = isUp ? '<i class="fa-solid fa-arrow-trend-up mr-1"></i>' : '<i class="fa-solid fa-arrow-trend-down mr-1"></i>';
