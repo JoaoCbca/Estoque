@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Controle de Estoque e Variação de Preço</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <!-- Tailwind CSS via CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome para Ícones -->
@@ -11,9 +12,32 @@
     <style>
         body { font-family: 'Inter', system-ui, sans-serif; background-color: #0a0a0a; color: #f5f5f5; }
         .modal-overlay { backdrop-filter: blur(4px); }
+        .loading-spinner { width: 2rem; height: 2rem; border: 3px solid #404040; border-top-color: #dc2626; border-radius: 50%; animation: loading-spin 0.8s linear infinite; }
+        @keyframes loading-spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body class="min-h-screen flex flex-col bg-[#0a0a0a] text-neutral-100">
+
+    <div id="app-loading-screen" class="fixed inset-0 z-[10000] flex items-center justify-center bg-[#0a0a0a] p-4" role="status" aria-live="polite">
+        <div id="app-loading-content" class="text-center">
+            <div class="w-20 h-20 bg-red-600 rounded-2xl shadow-lg shadow-red-950/50 flex items-center justify-center mx-auto mb-6">
+                <i class="fa-solid fa-boxes-stacked text-white text-3xl"></i>
+            </div>
+            <div class="loading-spinner mx-auto mb-5" aria-hidden="true"></div>
+            <h1 class="text-xl font-bold text-white">Preparando seu estoque</h1>
+            <p class="text-sm text-neutral-400 mt-2">Sincronizando produtos e movimentações...</p>
+        </div>
+        <div id="app-loading-error" class="hidden text-center max-w-sm">
+            <div class="w-16 h-16 bg-red-950 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl border border-red-900/50">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <h1 class="text-xl font-bold text-white">Não foi possível carregar o estoque</h1>
+            <p class="text-sm text-neutral-400 mt-2">Verifique sua conexão e tente novamente.</p>
+            <button id="retry-loading-btn" type="button" class="mt-5 bg-red-600 hover:bg-red-700 text-white font-semibold px-5 py-2.5 rounded-lg transition-colors">
+                <i class="fa-solid fa-rotate-right mr-2"></i>Tentar novamente
+            </button>
+        </div>
+    </div>
 
     <!-- Container Global para Toasts Normais (Canto Inferior Direito) -->
     <div id="toast-container" class="fixed bottom-5 right-5 z-[9999] flex flex-col space-y-2 pointer-events-none"></div>
@@ -89,7 +113,7 @@
                 </div>
                 <div>
                     <h1 class="text-xl font-bold text-white tracking-wide">Estoque</h1>
-                    <p class="text-xs text-neutral-400">Controle de Entradas e Baixas</p>
+                    <p class="text-xs text-neutral-400">Controle de Entradas, Baixas e Variação de Preço</p>
                 </div>
             </div>
             <div class="flex items-center space-x-4">
@@ -434,6 +458,10 @@
         const exportDataBtn = document.getElementById('export-data');
         const importDataBtn = document.getElementById('import-data');
         const importFileInput = document.getElementById('import-file');
+        const appLoadingScreen = document.getElementById('app-loading-screen');
+        const appLoadingContent = document.getElementById('app-loading-content');
+        const appLoadingError = document.getElementById('app-loading-error');
+        const retryLoadingBtn = document.getElementById('retry-loading-btn');
 
         function showToast(message, type = 'success') {
             const container = document.getElementById('toast-container');
@@ -489,8 +517,13 @@
         }
 
         async function loadDataFromServer() {
+            appLoadingScreen.classList.remove('hidden');
+            appLoadingContent.classList.remove('hidden');
+            appLoadingError.classList.add('hidden');
+
             try {
                 const response = await fetch('/api/data');
+                if (!response.ok) throw new Error(`Falha ao carregar dados: HTTP ${response.status}`);
                 const data = await response.json();
                 
                 state.products = data.products || [];
@@ -499,8 +532,13 @@
                 state.users = data.users || [];
                 
                 renderAll();
+                appLoadingScreen.classList.add('hidden');
+                return true;
             } catch (error) {
                 console.error("Erro ao carregar dados do servidor:", error);
+                appLoadingContent.classList.add('hidden');
+                appLoadingError.classList.remove('hidden');
+                return false;
             }
         }
 
@@ -539,10 +577,10 @@
         }
 
         window.addEventListener('DOMContentLoaded', () => {
-            loadDataFromServer().then(() => {
-                checkUserSession();
-            });
             setupEventListeners();
+            loadDataFromServer().then((loaded) => {
+                if (loaded) checkUserSession();
+            });
         });
 
         function escapeHtml(text) {
@@ -645,6 +683,12 @@
         }
 
         function setupEventListeners() {
+            retryLoadingBtn.addEventListener('click', () => {
+                loadDataFromServer().then((loaded) => {
+                    if (loaded) checkUserSession();
+                });
+            });
+
             goToMovementsBtn.addEventListener('click', () => {
                 movementHistorySection.scrollIntoView({ behavior: 'smooth', block: 'start' });
             });
