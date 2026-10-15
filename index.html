@@ -653,7 +653,7 @@
                 });
             });
 
-            // Botão de Limpar Histórico Seguro para Admin
+            // Botão de Limpar Histórico Seguro para Admin com salvamento síncrono no backend
             if (clearHistoryBtn) {
                 clearHistoryBtn.addEventListener('click', () => {
                     if (!state.currentUser || state.currentUser.role !== 'admin') {
@@ -693,12 +693,12 @@
                         // Esvazia o array localmente
                         state.movements = [];
                         
-                        // Sincroniza e grava a lista vazia no servidor imediatamente
+                        // Grava imediatamente o array vazio no backend de forma garantida
                         await saveState();
                         
-                        // Renderiza a tela atualizada
+                        // Atualiza a interface
                         renderAll();
-                        showToast('Histórico limpo para todos com sucesso!', 'success');
+                        showToast('Histórico limpo e persistido com sucesso!', 'success');
                     });
 
                     document.getElementById('modal-cancel-clear').addEventListener('click', () => {
