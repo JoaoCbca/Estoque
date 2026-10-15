@@ -213,6 +213,15 @@
                     <span>Limpar Histórico</span>
                 </button>
             </div>
+            <div class="px-6 py-4 border-b border-neutral-800 flex flex-col sm:flex-row gap-3">
+                <select id="movement-product-filter" class="w-full sm:w-auto px-3 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-sm text-white">
+                    <option value="">Todos os Produtos</option>
+                </select>
+                <select id="movement-category-filter" class="w-full sm:w-auto px-3 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-sm text-white">
+                    <option value="">Todas as Categorias</option>
+                </select>
+                <input id="movement-date-filter" type="date" aria-label="Filtrar movimentações por data" class="w-full sm:w-auto px-3 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-sm text-white">
+            </div>
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-neutral-800">
                     <thead class="bg-neutral-950">
@@ -247,9 +256,20 @@
                     <h3 id="price-history-title" class="text-lg font-bold text-white"><i class="fa-solid fa-chart-line mr-2 text-emerald-500"></i>Histórico de Variação de Preço</h3>
                     <p class="text-xs text-neutral-400 mt-0.5">Auditoria exclusiva das flutuações e percentuais de preço de compra a cada lote</p>
                 </div>
-                <button id="close-price-history-btn" type="button" class="text-neutral-400 hover:text-white p-2 rounded-lg hover:bg-neutral-800 transition-colors" aria-label="Fechar histórico de preços">
-                    <i class="fa-solid fa-xmark text-lg"></i>
-                </button>
+                <div class="flex items-center gap-2">
+                    <button id="clear-price-history-btn" type="button" class="hidden bg-red-950/80 hover:bg-red-900 border border-red-900 text-red-400 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors items-center space-x-1.5">
+                        <i class="fa-solid fa-trash-can"></i>
+                        <span>Limpar Histórico</span>
+                    </button>
+                    <button id="close-price-history-btn" type="button" class="text-neutral-400 hover:text-white p-2 rounded-lg hover:bg-neutral-800 transition-colors" aria-label="Fechar histórico de preços">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="px-6 py-4 border-b border-neutral-800">
+                <select id="price-history-product-filter" class="w-full sm:w-auto px-3 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-sm text-white">
+                    <option value="">Todos os Produtos</option>
+                </select>
             </div>
             <div class="overflow-auto">
                 <table class="min-w-full divide-y divide-neutral-800">
@@ -351,6 +371,7 @@
             users: [],
             products: [],
             movements: [],
+            priceHistory: [],
             filterLowStockOnly: false
         };
 
@@ -385,6 +406,11 @@
         const movementReason = document.getElementById('movement-reason');
         const cancelMovementBtn = document.getElementById('cancel-movement-btn');
         const clearHistoryBtn = document.getElementById('clear-history-btn');
+        const clearPriceHistoryBtn = document.getElementById('clear-price-history-btn');
+        const movementProductFilter = document.getElementById('movement-product-filter');
+        const movementCategoryFilter = document.getElementById('movement-category-filter');
+        const movementDateFilter = document.getElementById('movement-date-filter');
+        const priceHistoryProductFilter = document.getElementById('price-history-product-filter');
         const goToMovementsBtn = document.getElementById('go-to-movements-btn');
         const movementHistorySection = document.getElementById('movement-history');
         const openPriceHistoryBtn = document.getElementById('open-price-history-btn');
@@ -469,6 +495,7 @@
                 
                 state.products = data.products || [];
                 state.movements = data.movements || [];
+                state.priceHistory = data.price_history || state.movements.filter(m => m.type === 'ENTRADA');
                 state.users = data.users || [];
                 
                 renderAll();
@@ -490,19 +517,24 @@
                     body: JSON.stringify({
                         user: state.currentUser,
                         products: state.products,
-                        movements: state.movements
+                        movements: state.movements,
+                        priceHistory: state.priceHistory
                     })
                 });
                 const data = await response.json();
                 if (!response.ok) {
                     updateSyncStatus('error', 'Falha ao salvar');
                     showToast(data.error || 'Erro ao sincronizar.', 'error');
+                    return false;
                 } else {
                     updateSyncStatus('synced');
+                    return true;
                 }
             } catch (error) {
                 console.error("Erro ao sincronizar com o servidor:", error);
                 updateSyncStatus('error', 'Sem conexão');
+                showToast('Erro de conexão ao sincronizar os dados.', 'error');
+                return false;
             }
         }
 
@@ -529,6 +561,7 @@
                 authModal.classList.remove('hidden');
                 authModal.classList.add('flex');
                 if (clearHistoryBtn) clearHistoryBtn.classList.add('hidden');
+                if (clearPriceHistoryBtn) clearPriceHistoryBtn.classList.add('hidden');
             } else {
                 currentUserSpan.textContent = state.currentUser.name;
                 authModal.classList.add('hidden');
@@ -543,7 +576,72 @@
                         clearHistoryBtn.classList.remove('flex');
                     }
                 }
+                if (clearPriceHistoryBtn) {
+                    if (state.currentUser.role === 'admin') {
+                        clearPriceHistoryBtn.classList.remove('hidden');
+                        clearPriceHistoryBtn.classList.add('flex');
+                    } else {
+                        clearPriceHistoryBtn.classList.add('hidden');
+                        clearPriceHistoryBtn.classList.remove('flex');
+                    }
+                }
             }
+        }
+
+        function setupClearHistoryButton(button, historyKey, historyLabel) {
+            if (!button) return;
+
+            button.addEventListener('click', () => {
+                if (!state.currentUser || state.currentUser.role !== 'admin') {
+                    showToast('Apenas administradores podem limpar o histórico.', 'error');
+                    return;
+                }
+
+                const overlay = document.createElement('div');
+                overlay.className = 'fixed inset-0 bg-black/85 modal-overlay z-[9999] flex items-center justify-center p-4 transition-all duration-300 opacity-0';
+                overlay.innerHTML = `
+                    <div class="bg-neutral-900 border border-red-900/60 rounded-2xl p-6 max-w-sm w-full shadow-2xl transform scale-95 transition-transform duration-300 text-center space-y-4">
+                        <div class="w-14 h-14 bg-red-950/80 text-red-500 rounded-full flex items-center justify-center mx-auto text-xl border border-red-900/50">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-white mb-1">Limpar Histórico para Todos?</h3>
+                            <p class="text-sm text-neutral-400">Esta ação apagará permanentemente ${historyLabel} para todos os usuários.</p>
+                        </div>
+                        <div class="flex space-x-3 pt-2">
+                            <button type="button" class="cancel-clear-history flex-1 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 font-semibold py-2.5 rounded-lg text-sm transition-colors">Cancelar</button>
+                            <button type="button" class="confirm-clear-history flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold py-2.5 rounded-lg text-sm shadow transition-colors">Sim, Limpar</button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(overlay);
+
+                setTimeout(() => {
+                    overlay.classList.remove('opacity-0');
+                    overlay.querySelector('div').classList.remove('scale-95');
+                }, 10);
+
+                const closeOverlay = () => {
+                    overlay.classList.add('opacity-0');
+                    setTimeout(() => overlay.remove(), 300);
+                };
+
+                overlay.querySelector('.confirm-clear-history').addEventListener('click', async () => {
+                    closeOverlay();
+                    const previousHistory = state[historyKey];
+                    state[historyKey] = [];
+                    renderAll();
+
+                    if (await saveState()) {
+                        showToast('Histórico limpo e persistido com sucesso!', 'success');
+                    } else {
+                        state[historyKey] = previousHistory;
+                        renderAll();
+                    }
+                });
+
+                overlay.querySelector('.cancel-clear-history').addEventListener('click', closeOverlay);
+            });
         }
 
         function setupEventListeners() {
@@ -703,60 +801,13 @@
                 });
             });
 
-            // Botão de Limpar Histórico Seguro para Admin com salvamento síncrono no backend
-            if (clearHistoryBtn) {
-                clearHistoryBtn.addEventListener('click', () => {
-                    if (!state.currentUser || state.currentUser.role !== 'admin') {
-                        showToast('Apenas administradores podem limpar o histórico.', 'error');
-                        return;
-                    }
+            setupClearHistoryButton(clearHistoryBtn, 'movements', 'todos os registros de movimentação');
+            setupClearHistoryButton(clearPriceHistoryBtn, 'priceHistory', 'todos os registros de variação de preço');
 
-                    const overlay = document.createElement('div');
-                    overlay.className = `fixed inset-0 bg-black/85 modal-overlay z-[9999] flex items-center justify-center p-4 transition-all duration-300 opacity-0`;
-                    overlay.innerHTML = `
-                        <div class="bg-neutral-900 border border-red-900/60 rounded-2xl p-6 max-w-sm w-full shadow-2xl transform scale-95 transition-transform duration-300 text-center space-y-4">
-                            <div class="w-14 h-14 bg-red-950/80 text-red-500 rounded-full flex items-center justify-center mx-auto text-xl border border-red-900/50">
-                                <i class="fa-solid fa-triangle-exclamation"></i>
-                            </div>
-                            <div>
-                                <h3 class="text-lg font-bold text-white mb-1">Limpar Histórico para Todos?</h3>
-                                <p class="text-sm text-neutral-400">Esta ação apagará permanentemente todos os registros de movimentação para todos os usuários.</p>
-                            </div>
-                            <div class="flex space-x-3 pt-2">
-                                <button id="modal-cancel-clear" class="flex-1 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 font-semibold py-2.5 rounded-lg text-sm transition-colors">Cancelar</button>
-                                <button id="modal-confirm-clear" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold py-2.5 rounded-lg text-sm shadow transition-colors">Sim, Limpar</button>
-                            </div>
-                        </div>
-                    `;
-
-                    document.body.appendChild(overlay);
-
-                    setTimeout(() => {
-                        overlay.classList.remove('opacity-0');
-                        overlay.querySelector('div').classList.remove('scale-95');
-                    }, 10);
-
-                    document.getElementById('modal-confirm-clear').addEventListener('click', async () => {
-                        overlay.classList.add('opacity-0');
-                        setTimeout(() => overlay.remove(), 300);
-
-                        // Esvazia o array localmente
-                        state.movements = [];
-                        
-                        // Grava imediatamente o array vazio no backend de forma garantida
-                        await saveState();
-                        
-                        // Atualiza a interface
-                        renderAll();
-                        showToast('Histórico limpo e persistido com sucesso!', 'success');
-                    });
-
-                    document.getElementById('modal-cancel-clear').addEventListener('click', () => {
-                        overlay.classList.add('opacity-0');
-                        setTimeout(() => overlay.remove(), 300);
-                    });
-                });
-            }
+            movementProductFilter.addEventListener('change', renderMovementsTable);
+            movementCategoryFilter.addEventListener('change', renderMovementsTable);
+            movementDateFilter.addEventListener('change', renderMovementsTable);
+            priceHistoryProductFilter.addEventListener('change', renderPriceHistoryTable);
 
             newProductBtn.addEventListener('click', () => {
                 if (!state.currentUser || state.currentUser.role !== 'admin') {
@@ -949,6 +1000,7 @@
                         const imported = JSON.parse(event.target.result);
                         if (imported.products) state.products = imported.products;
                         if (imported.movements) state.movements = imported.movements;
+                        state.priceHistory = imported.priceHistory || imported.price_history || (imported.movements || []).filter(m => m.type === 'ENTRADA');
                         await saveState();
                         renderAll();
                         showToast('Dados importados com sucesso!', 'success');
@@ -975,14 +1027,58 @@
                 date: new Date().toISOString()
             };
             state.movements.unshift(newMovement);
+            if (type === 'ENTRADA') state.priceHistory.unshift(newMovement);
         }
 
         function renderAll() {
             renderStats();
             renderCategoryFilterOptions();
+            renderHistoryFilterOptions();
             renderProductsTable();
             renderMovementsTable();
             renderPriceHistoryTable();
+        }
+
+        function renderHistoryFilterOptions() {
+            const movementProduct = movementProductFilter.value;
+            const priceProduct = priceHistoryProductFilter.value;
+
+            function populateProductFilter(filter, records, selectedValue) {
+                const options = new Map();
+                state.products.forEach(product => {
+                    options.set(String(product.id), product.name || 'Produto sem nome');
+                });
+                records.forEach(record => {
+                    const id = String(record.product_id || record.product_name);
+                    if (!options.has(id)) options.set(id, record.product_name || 'Produto sem nome');
+                });
+
+                filter.innerHTML = '<option value="">Todos os Produtos</option>';
+                [...options.entries()]
+                    .sort((a, b) => a[1].localeCompare(b[1], 'pt-BR'))
+                    .forEach(([id, name]) => {
+                        const option = document.createElement('option');
+                        option.value = id;
+                        option.textContent = name;
+                        filter.appendChild(option);
+                    });
+                filter.value = options.has(selectedValue) ? selectedValue : '';
+            }
+
+            populateProductFilter(movementProductFilter, state.movements, movementProduct);
+            populateProductFilter(priceHistoryProductFilter, state.priceHistory, priceProduct);
+
+            const selectedCategory = movementCategoryFilter.value;
+            const categories = [...new Set(state.products.map(product => product.category).filter(Boolean))]
+                .sort((a, b) => a.localeCompare(b, 'pt-BR'));
+            movementCategoryFilter.innerHTML = '<option value="">Todas as Categorias</option>';
+            categories.forEach(category => {
+                const option = document.createElement('option');
+                option.value = category;
+                option.textContent = category;
+                movementCategoryFilter.appendChild(option);
+            });
+            movementCategoryFilter.value = categories.includes(selectedCategory) ? selectedCategory : '';
         }
 
         function renderStats() {
@@ -1084,7 +1180,30 @@
                 return;
             }
 
-            state.movements.slice(0, 50).forEach(m => {
+            const selectedProduct = movementProductFilter.value;
+            const selectedCategory = movementCategoryFilter.value;
+            const selectedDate = movementDateFilter.value;
+            const productsById = new Map(state.products.map(product => [String(product.id), product]));
+            const filteredMovements = state.movements.filter(m => {
+                const productId = String(m.product_id || m.product_name);
+                const product = productsById.get(productId);
+                const category = product ? product.category : '';
+                const date = m.date ? new Date(m.date) : null;
+                const movementDate = date && !Number.isNaN(date.getTime())
+                    ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+                    : '';
+
+                return (!selectedProduct || productId === selectedProduct)
+                    && (!selectedCategory || category === selectedCategory)
+                    && (!selectedDate || movementDate === selectedDate);
+            });
+
+            if (filteredMovements.length === 0) {
+                movementsTableBody.innerHTML = `<tr><td colspan="6" class="px-6 py-4 text-center text-sm text-neutral-500">Nenhuma movimentação encontrada com os filtros selecionados.</td></tr>`;
+                return;
+            }
+
+            filteredMovements.slice(0, 50).forEach(m => {
                 const dateObj = m.date ? new Date(m.date) : new Date();
                 const formattedDate = dateObj.toLocaleString('pt-BR');
                 const isEntrada = m.type === 'ENTRADA';
@@ -1115,7 +1234,10 @@
         function renderPriceHistoryTable() {
             priceHistoryTableBody.innerHTML = '';
 
-            const priceMovements = state.movements.filter(m => m.type === 'ENTRADA');
+            const selectedProduct = priceHistoryProductFilter.value;
+            const priceMovements = state.priceHistory.filter(m =>
+                !selectedProduct || String(m.product_id || m.product_name) === selectedProduct
+            );
 
             if (priceMovements.length === 0) {
                 priceHistoryTableBody.innerHTML = `<tr><td colspan="6" class="px-6 py-4 text-center text-sm text-neutral-500">Nenhum histórico de variação de preço registrado.</td></tr>`;
