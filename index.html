@@ -731,7 +731,6 @@
                     product.quantity += qty;
                     if (!isNaN(newPrice) && newPrice >= 0) {
                         if (oldPrice > 0) {
-                            // Cálculo da variação percentual
                             priceVariationPercent = ((newPrice - oldPrice) / oldPrice) * 100;
                         }
                         product.price = newPrice;
@@ -741,14 +740,22 @@
                 }
                 product.updated_at = new Date().toISOString();
 
-                addMovementRecord(product.id, product.name, type, qty, type === 'ENTRADA' ? product.price : null, reason, oldPrice, priceVariationPercent);
+                // PASSANDO CORRETAMENTE OS PARÂMETROS oldPrice E priceVariationPercent
+                addMovementRecord(
+                    product.id, 
+                    product.name, 
+                    type, 
+                    qty, 
+                    type === 'ENTRADA' ? newPrice : null, 
+                    reason, 
+                    oldPrice, 
+                    priceVariationPercent
+                );
+
                 saveState();
                 movementModal.classList.add('hidden');
                 movementModal.classList.remove('flex');
-                
-                // Atualiza todas as tabelas e cards imediatamente
                 renderAll();
-                
                 showToast(`Movimentação de ${type.toLowerCase()} registrada com sucesso!`, 'success');
             });
 
@@ -844,7 +851,7 @@
             renderCategoryFilterOptions();
             renderProductsTable();
             renderMovementsTable();
-            renderPriceHistoryTable(); // <--- Incluído aqui para renderizar sempre
+            renderPriceHistoryTable();
         }
 
         function renderStats() {
@@ -957,7 +964,8 @@
                     </span>
                 `;
 
-                const priceFormatted = (isEntrada && m.unit_price !== null && m.unit_price !== undefined) 
+                // EXIBE CORRETAMENTE O PREÇO UNITÁRIO NA TABELA DE MOVIMENTAÇÕES
+                const priceFormatted = (m.unit_price !== null && m.unit_price !== undefined) 
                     ? (m.unit_price).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) 
                     : '<span class="text-neutral-500 text-xs">-</span>';
 
@@ -977,7 +985,7 @@
         function renderPriceHistoryTable() {
             priceHistoryTableBody.innerHTML = '';
 
-            // Filtra estritamente as entradas onde houve definição ou alteração de preço unitário
+            // Filtra estritamente as entradas onde houve preço unitário definido
             const priceMovements = state.movements.filter(m => m.type === 'ENTRADA' && m.unit_price !== null && m.unit_price !== undefined);
 
             if (priceMovements.length === 0) {
@@ -999,6 +1007,7 @@
                 if (m.old_price && m.old_price > 0 && m.price_variation !== 0) {
                     const varVal = m.price_variation;
                     const isUp = varVal > 0;
+                    // Se subiu, cor vermelha/alerta; se baixou, cor verde/sucesso
                     const badgeColor = isUp ? 'bg-red-950/80 border-red-900 text-red-400' : 'bg-emerald-950/80 border-emerald-900 text-emerald-400';
                     const icon = isUp ? '<i class="fa-solid fa-arrow-trend-up mr-1"></i>' : '<i class="fa-solid fa-arrow-trend-down mr-1"></i>';
                     
