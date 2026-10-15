@@ -487,9 +487,6 @@
                 checkUserSession();
             });
             setupEventListeners();
-            
-            // Sincronização automática para refletir o histórico limpo em tempo real para todos os usuários
-            setInterval(loadDataFromServer, 3000);
         });
 
         function escapeHtml(text) {
@@ -656,7 +653,7 @@
                 });
             });
 
-            // Botão de Limpar Histórico Seguro para Admin com propagação imediata
+            // Botão de Limpar Histórico Seguro para Admin
             if (clearHistoryBtn) {
                 clearHistoryBtn.addEventListener('click', () => {
                     if (!state.currentUser || state.currentUser.role !== 'admin') {
@@ -673,7 +670,7 @@
                             </div>
                             <div>
                                 <h3 class="text-lg font-bold text-white mb-1">Limpar Histórico para Todos?</h3>
-                                <p class="text-sm text-neutral-400">Esta ação apagará permanentemente todos os registros de movimentação e variação para todos os usuários.</p>
+                                <p class="text-sm text-neutral-400">Esta ação apagará permanentemente todos os registros de movimentação para todos os usuários.</p>
                             </div>
                             <div class="flex space-x-3 pt-2">
                                 <button id="modal-cancel-clear" class="flex-1 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 font-semibold py-2.5 rounded-lg text-sm transition-colors">Cancelar</button>
@@ -693,13 +690,13 @@
                         overlay.classList.add('opacity-0');
                         setTimeout(() => overlay.remove(), 300);
 
-                        // Esvazia localmente
+                        // Esvazia o array localmente
                         state.movements = [];
                         
-                        // Envia para o servidor garantindo que o array de movimentações vazio seja gravado permanentemente no backend
+                        // Sincroniza e grava a lista vazia no servidor imediatamente
                         await saveState();
                         
-                        // Atualiza a tela imediatamente
+                        // Renderiza a tela atualizada
                         renderAll();
                         showToast('Histórico limpo para todos com sucesso!', 'success');
                     });
