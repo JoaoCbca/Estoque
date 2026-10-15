@@ -80,6 +80,50 @@ async function initDatabase() {
         await pool.query(`ALTER TABLE movements ADD COLUMN IF NOT EXISTS old_price REAL`);
         await pool.query(`ALTER TABLE movements ADD COLUMN IF NOT EXISTS price_variation REAL`);
 
+        await pool.query(`CREATE TABLE IF NOT EXISTS price_history (
+            id TEXT PRIMARY KEY,
+            product_id TEXT,
+            product_name TEXT,
+            type TEXT,
+            quantity INTEGER,
+            unit_price REAL,
+            old_price REAL,
+            price_variation REAL,
+            reason TEXT,
+            user_name TEXT,
+            date TEXT
+        )`);
+        await pool.query(`CREATE TABLE IF NOT EXISTS app_settings (
+            key TEXT PRIMARY KEY,
+            value TEXT
+        )`);
+
+        const migrationClient = await pool.connect();
+        try {
+            await migrationClient.query('BEGIN');
+            const migration = await migrationClient.query(
+                `INSERT INTO app_settings (key, value)
+                 VALUES ('price_history_migrated', 'true')
+                 ON CONFLICT (key) DO NOTHING
+                 RETURNING key`
+            );
+            if (migration.rowCount > 0) {
+                await migrationClient.query(
+                    `INSERT INTO price_history (id, product_id, product_name, type, quantity, unit_price, old_price, price_variation, reason, user_name, date)
+                     SELECT id, product_id, product_name, type, quantity, unit_price, old_price, price_variation, reason, user_name, date
+                     FROM movements
+                     WHERE type = 'ENTRADA'
+                     ON CONFLICT (id) DO NOTHING`
+                );
+            }
+            await migrationClient.query('COMMIT');
+        } catch (err) {
+            await migrationClient.query('ROLLBACK');
+            throw err;
+        } finally {
+            migrationClient.release();
+        }
+
         const defaultUsers = [
             { user_id: '91004500', name: 'João Vítor Maximiano', role: 'admin' },
             { user_id: '91002420', name: 'Maiara Lima de Souza Godoy', role: 'comum' },
@@ -220,11 +264,13 @@ app.get('/api/data', async (req, res) => {
     try {
         const productsRes = await pool.query(`SELECT * FROM products`);
         const movementsRes = await pool.query(`SELECT * FROM movements ORDER BY date DESC`);
+        const priceHistoryRes = await pool.query(`SELECT * FROM price_history ORDER BY date DESC`);
         const usersRes = await pool.query(`SELECT user_id as id, name, role FROM users`);
 
         res.json({ 
             products: productsRes.rows, 
             movements: movementsRes.rows, 
+            price_history: priceHistoryRes.rows,
             users: usersRes.rows 
         });
     } catch (err) {
@@ -247,7 +293,7 @@ app.post('/api/sync', async (req, res) => {
             return res.status(403).json({ error: 'Acesso negado. Sessão inválida.' });
         }
 
-        const { products, movements } = req.body;
+        const { products, movements, priceHistory } = req.body;
         const client = await pool.connect();
         try {
             await client.query('BEGIN');
@@ -276,6 +322,17 @@ app.post('/api/sync', async (req, res) => {
                 for (const m of movements) {
                     await client.query(
                         `INSERT INTO movements (id, product_id, product_name, type, quantity, unit_price, old_price, price_variation, reason, user_name, date) 
+                         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+                        [m.id, m.product_id, m.product_name, m.type, m.quantity, m.unit_price || 0, m.old_price || 0, m.price_variation || 0, m.reason, m.user_name, m.date]
+                    );
+                }
+            }
+
+            if (priceHistory !== undefined && Array.isArray(priceHistory)) {
+                await client.query(`DELETE FROM price_history`);
+                for (const m of priceHistory) {
+                    await client.query(
+                        `INSERT INTO price_history (id, product_id, product_name, type, quantity, unit_price, old_price, price_variation, reason, user_name, date)
                          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
                         [m.id, m.product_id, m.product_name, m.type, m.quantity, m.unit_price || 0, m.old_price || 0, m.price_variation || 0, m.reason, m.user_name, m.date]
                     );
