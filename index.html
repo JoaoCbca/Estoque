@@ -196,9 +196,16 @@
 
         <!-- Seção de Histórico de Movimentações (Geral) -->
         <div class="bg-neutral-900 rounded-xl shadow-sm border border-neutral-800 overflow-hidden">
-            <div class="p-6 border-b border-neutral-800">
-                <h3 class="text-lg font-bold text-white"><i class="fa-solid fa-history mr-2 text-red-500"></i>Histórico de Movimentações</h3>
-                <p class="text-xs text-neutral-400 mt-0.5">Registro geral de entradas e baixas do estoque</p>
+            <div class="p-6 border-b border-neutral-800 flex justify-between items-center">
+                <div>
+                    <h3 class="text-lg font-bold text-white"><i class="fa-solid fa-history mr-2 text-red-500"></i>Histórico de Movimentações</h3>
+                    <p class="text-xs text-neutral-400 mt-0.5">Registro geral de entradas e baixas do estoque</p>
+                </div>
+                <!-- Botão de Limpar Histórico Exclusivo para Administradores -->
+                <button id="clear-history-btn" class="hidden bg-red-950/80 hover:bg-red-900 border border-red-900 text-red-400 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors items-center space-x-1.5">
+                    <i class="fa-solid fa-trash-can"></i>
+                    <span>Limpar Histórico</span>
+                </button>
             </div>
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-neutral-800">
@@ -358,6 +365,7 @@
         const movementPriceContainer = document.getElementById('movement-price-container');
         const movementReason = document.getElementById('movement-reason');
         const cancelMovementBtn = document.getElementById('cancel-movement-btn');
+        const clearHistoryBtn = document.getElementById('clear-history-btn');
 
         const searchInput = document.getElementById('search-input');
         const categoryFilter = document.getElementById('category-filter');
@@ -498,10 +506,22 @@
             if (!state.currentUser) {
                 authModal.classList.remove('hidden');
                 authModal.classList.add('flex');
+                if (clearHistoryBtn) clearHistoryBtn.classList.add('hidden');
             } else {
                 currentUserSpan.textContent = state.currentUser.name;
                 authModal.classList.add('hidden');
                 authModal.classList.remove('flex');
+
+                // Exibe o botão de limpar histórico APENAS se for admin
+                if (clearHistoryBtn) {
+                    if (state.currentUser.role === 'admin') {
+                        clearHistoryBtn.classList.remove('hidden');
+                        clearHistoryBtn.classList.add('flex');
+                    } else {
+                        clearHistoryBtn.classList.add('hidden');
+                        clearHistoryBtn.classList.remove('flex');
+                    }
+                }
             }
         }
 
@@ -636,6 +656,56 @@
                 });
             });
 
+            // Evento do botão de limpar histórico (Restrito a Admin)
+            if (clearHistoryBtn) {
+                clearHistoryBtn.addEventListener('click', () => {
+                    if (!state.currentUser || state.currentUser.role !== 'admin') {
+                        showToast('Apenas administradores podem limpar o histórico.', 'error');
+                        return;
+                    }
+
+                    const overlay = document.createElement('div');
+                    overlay.className = `fixed inset-0 bg-black/85 modal-overlay z-[9999] flex items-center justify-center p-4 transition-all duration-300 opacity-0`;
+                    overlay.innerHTML = `
+                        <div class="bg-neutral-900 border border-red-900/60 rounded-2xl p-6 max-w-sm w-full shadow-2xl transform scale-95 transition-transform duration-300 text-center space-y-4">
+                            <div class="w-14 h-14 bg-red-950/80 text-red-500 rounded-full flex items-center justify-center mx-auto text-xl border border-red-900/50">
+                                <i class="fa-solid fa-triangle-exclamation"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-bold text-white mb-1">Limpar Histórico Completo?</h3>
+                                <p class="text-sm text-neutral-400">Esta ação apagará todos os registros de movimentação e variação de preço. Deseja continuar?</p>
+                            </div>
+                            <div class="flex space-x-3 pt-2">
+                                <button id="modal-cancel-clear" class="flex-1 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 font-semibold py-2.5 rounded-lg text-sm transition-colors">Cancelar</button>
+                                <button id="modal-confirm-clear" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold py-2.5 rounded-lg text-sm shadow transition-colors">Sim, Limpar</button>
+                            </div>
+                        </div>
+                    `;
+
+                    document.body.appendChild(overlay);
+
+                    setTimeout(() => {
+                        overlay.classList.remove('opacity-0');
+                        overlay.querySelector('div').classList.remove('scale-95');
+                    }, 10);
+
+                    document.getElementById('modal-confirm-clear').addEventListener('click', () => {
+                        overlay.classList.add('opacity-0');
+                        setTimeout(() => overlay.remove(), 300);
+
+                        state.movements = [];
+                        saveState();
+                        renderAll();
+                        showToast('Histórico limpo com sucesso!', 'success');
+                    });
+
+                    document.getElementById('modal-cancel-clear').addEventListener('click', () => {
+                        overlay.classList.add('opacity-0');
+                        setTimeout(() => overlay.remove(), 300);
+                    });
+                });
+            }
+
             newProductBtn.addEventListener('click', () => {
                 if (!state.currentUser || state.currentUser.role !== 'admin') {
                     showToast('Apenas administradores podem cadastrar novos produtos.', 'warning');
@@ -740,7 +810,6 @@
                 }
                 product.updated_at = new Date().toISOString();
 
-                // Adiciona o registro com os dados de preço
                 addMovementRecord(
                     product.id, 
                     product.name, 
@@ -984,7 +1053,6 @@
         function renderPriceHistoryTable() {
             priceHistoryTableBody.innerHTML = '';
 
-            // Filtra todas as entradas de produtos para exibir no histórico de preços
             const priceMovements = state.movements.filter(m => m.type === 'ENTRADA');
 
             if (priceMovements.length === 0) {
