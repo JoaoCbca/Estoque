@@ -3,11 +3,11 @@ const { Pool } = require('pg');
 const cors = require('cors');
 const path = require('path');
 const crypto = require('crypto');
-const jwt = require('jsonwebtoken'); // <--- Adicionado para segurança JWT
+const jwt = require('jsonwebtoken');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const JWT_SECRET = process.env.JWT_SECRET || 'chave_secreta_padrao_para_desenvolvimento'; // <--- Chave secreta
+const JWT_SECRET = process.env.JWT_SECRET || 'chave_secreta_padrao_para_desenvolvimento';
 
 app.use(express.json());
 app.use(cors());
@@ -16,7 +16,7 @@ app.use(cors());
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: {
-        rejectUnauthorized: false // Obrigatório para o Postgres hospedado no Render
+        rejectUnauthorized: false
     }
 });
 
@@ -47,7 +47,6 @@ async function initDatabase() {
             lockout_until TIMESTAMP NULL
         )`);
 
-        // Garante que as colunas existam caso a tabela já tenha sido criada anteriormente
         await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS failed_login_attempts INT DEFAULT 0`);
         await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS lockout_until TIMESTAMP NULL`);
 
@@ -68,12 +67,19 @@ async function initDatabase() {
             product_name TEXT,
             type TEXT,
             quantity INTEGER,
+            unit_price REAL,
+            old_price REAL,
+            price_variation REAL,
             reason TEXT,
             user_name TEXT,
             date TEXT
         )`);
 
-        // Lista de todos os 7 usuários iniciais (Senha padrão temporária: '123456')
+        // Garante colunas de preço no histórico caso a tabela seja antiga
+        await pool.query(`ALTER TABLE movements ADD COLUMN IF NOT EXISTS unit_price REAL`);
+        await pool.query(`ALTER TABLE movements ADD COLUMN IF NOT EXISTS old_price REAL`);
+        await pool.query(`ALTER TABLE movements ADD COLUMN IF NOT EXISTS price_variation REAL`);
+
         const defaultUsers = [
             { user_id: '91004500', name: 'João Vítor Maximiano', role: 'admin' },
             { user_id: '91002420', name: 'Maiara Lima de Souza Godoy', role: 'comum' },
@@ -105,7 +111,6 @@ initDatabase();
 
 app.use(express.static(path.join(__dirname)));
 
-// Rota de Autenticação (Login com Bloqueio de Tentativas e Geração de Token JWT)
 app.post('/api/auth', async (req, res) => {
     const { userId, password } = req.body;
     if (!userId || !password) {
@@ -116,14 +121,12 @@ app.post('/api/auth', async (req, res) => {
         const result = await pool.query(`SELECT * FROM users WHERE user_id = $1`, [userId]);
         const user = result.rows[0];
 
-        // Mensagem genérica para não revelar se o ID existe
         if (!user) {
             return res.status(401).json({ error: 'ID de acesso ou senha incorretos.' });
         }
 
         const agora = new Date();
 
-        // 1. Verifica se a conta está bloqueada temporariamente
         if (user.lockout_until && new Date(user.lockout_until) > agora) {
             const minutosRestantes = Math.ceil((new Date(user.lockout_until) - agora) / (1000 * 60));
             return res.status(429).json({ 
@@ -131,17 +134,14 @@ app.post('/api/auth', async (req, res) => {
             });
         }
 
-        // 2. Valida a senha
         if (!verifyPassword(password, user.password)) {
             const novasTentativas = (user.failed_login_attempts || 0) + 1;
             let tempoBloqueio = null;
 
-            // Se atingir 5 tentativas falhas, bloqueia por 15 minutos
             if (novasTentativas >= 5) {
                 tempoBloqueio = new Date(agora.getTime() + 15 * 60 * 1000);
             }
 
-            // Atualiza o contador de erros e o tempo de bloqueio no banco
             await pool.query(
                 `UPDATE users SET failed_login_attempts = $1, lockout_until = $2 WHERE user_id = $3`,
                 [novasTentativas, tempoBloqueio, userId]
@@ -159,13 +159,11 @@ app.post('/api/auth', async (req, res) => {
             });
         }
 
-        // 3. LOGIN BEM-SUCEDIDO: Zera os erros e o bloqueio
         await pool.query(
             `UPDATE users SET failed_login_attempts = 0, lockout_until = NULL WHERE user_id = $1`,
             [userId]
         );
 
-        // Gera o Token JWT válido por 8 horas
         const token = jwt.sign(
             { id: user.user_id, role: user.role, name: user.name },
             JWT_SECRET,
@@ -173,7 +171,7 @@ app.post('/api/auth', async (req, res) => {
         );
 
         res.json({
-            token, // <--- Enviando o token gerado para o cliente
+            token,
             user: {
                 id: user.user_id,
                 name: user.name,
@@ -186,7 +184,6 @@ app.post('/api/auth', async (req, res) => {
     }
 });
 
-// Rota para Alteração/Cadastro de Senha
 app.put('/api/users/password', async (req, res) => {
     const { userId, oldPassword, newPassword } = req.body;
 
@@ -208,7 +205,6 @@ app.put('/api/users/password', async (req, res) => {
 
         const secureNewPassword = hashPassword(newPassword);
         
-        // Ao alterar a senha com sucesso, também limpamos qualquer bloqueio residual
         await pool.query(
             `UPDATE users SET password = $1, failed_login_attempts = 0, lockout_until = NULL WHERE user_id = $2`, 
             [secureNewPassword, userId]
@@ -236,7 +232,6 @@ app.get('/api/data', async (req, res) => {
     }
 });
 
-// Rota /api/sync protegida por Token JWT (liberada para qualquer usuário autenticado: admin ou comum)
 app.post('/api/sync', async (req, res) => {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
@@ -246,7 +241,6 @@ app.post('/api/sync', async (req, res) => {
     }
 
     try {
-        // Valida o token e extrai as informações do usuário (removida a restrição exclusiva de admin)
         const decoded = jwt.verify(token, JWT_SECRET);
 
         if (!decoded) {
@@ -276,13 +270,14 @@ app.post('/api/sync', async (req, res) => {
                 }
             }
 
-            if (movements && Array.isArray(movements)) {
+            // CORREÇÃO: Limpa e sincroniza corretamente as movimentações (permite apagar o histórico de vez)
+            if (movements !== undefined && Array.isArray(movements)) {
+                await client.query(`DELETE FROM movements`);
                 for (const m of movements) {
                     await client.query(
-                        `INSERT INTO movements (id, product_id, product_name, type, quantity, reason, user_name, date) 
-                         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-                         ON CONFLICT (id) DO NOTHING`,
-                        [m.id, m.product_id, m.product_name, m.type, m.quantity, m.reason, m.user_name, m.date]
+                        `INSERT INTO movements (id, product_id, product_name, type, quantity, unit_price, old_price, price_variation, reason, user_name, date) 
+                         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+                        [m.id, m.product_id, m.product_name, m.type, m.quantity, m.unit_price || 0, m.old_price || 0, m.price_variation || 0, m.reason, m.user_name, m.date]
                     );
                 }
             }
@@ -291,6 +286,7 @@ app.post('/api/sync', async (req, res) => {
             res.json({ success: true });
         } catch (err) {
             await client.query('ROLLBACK');
+            console.error('Erro na transação de sync:', err);
             res.status(500).json({ error: 'Erro ao sincronizar dados.' });
         } finally {
             client.release();
