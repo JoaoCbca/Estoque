@@ -444,7 +444,6 @@
                 const data = await response.json();
                 
                 state.products = data.products || [];
-                // Sincroniza o array de movimentações exatamente como está salvo no servidor central
                 state.movements = data.movements || [];
                 state.users = data.users || [];
                 
@@ -489,7 +488,7 @@
             });
             setupEventListeners();
             
-            // Intervalo de sincronização em tempo real para todos os usuários conectados
+            // Sincronização automática para refletir o histórico limpo em tempo real para todos os usuários
             setInterval(loadDataFromServer, 3000);
         });
 
@@ -657,7 +656,7 @@
                 });
             });
 
-            // Botão de Limpar Histórico Restrito a Admins (Zera o histórico para todos instantaneamente)
+            // Botão de Limpar Histórico Seguro para Admin com propagação imediata
             if (clearHistoryBtn) {
                 clearHistoryBtn.addEventListener('click', () => {
                     if (!state.currentUser || state.currentUser.role !== 'admin') {
@@ -690,17 +689,17 @@
                         overlay.querySelector('div').classList.remove('scale-95');
                     }, 10);
 
-                    document.getElementById('modal-confirm-clear').addEventListener('click', () => {
+                    document.getElementById('modal-confirm-clear').addEventListener('click', async () => {
                         overlay.classList.add('opacity-0');
                         setTimeout(() => overlay.remove(), 300);
 
-                        // Esvazia o array de movimentações globalmente
+                        // Esvazia localmente
                         state.movements = [];
                         
-                        // Salva e propaga a limpeza para o servidor imediatamente
-                        saveState();
+                        // Envia para o servidor garantindo que o array de movimentações vazio seja gravado permanentemente no backend
+                        await saveState();
                         
-                        // Atualiza a tela de todos
+                        // Atualiza a tela imediatamente
                         renderAll();
                         showToast('Histórico limpo para todos com sucesso!', 'success');
                     });
