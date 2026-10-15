@@ -275,7 +275,7 @@
                 <div class="grid grid-cols-3 gap-4">
                     <div>
                         <label class="block text-xs font-semibold text-neutral-300 uppercase mb-1">Preço Un. (R$)</label>
-                        <input type="number" step="0.01" min="0" id="product-price" required class="w-full px-3 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-sm focus:ring-2 focus:ring-red-600 focus:outline-none text-white">
+                        <input type="number" step="0.01" min="0.01" id="product-price" required class="w-full px-3 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-sm focus:ring-2 focus:ring-red-600 focus:outline-none text-white" title="O preço não pode ser zero">
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-neutral-300 uppercase mb-1">Qtd Inicial</label>
@@ -309,7 +309,7 @@
                     </div>
                     <div id="movement-price-container">
                         <label class="block text-xs font-semibold text-neutral-300 uppercase mb-1">Preço Unitário (R$)</label>
-                        <input type="number" step="0.01" min="0" id="movement-unit-price" class="w-full px-3 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-sm focus:ring-2 focus:ring-red-600 focus:outline-none font-bold text-white" placeholder="Ex: 4.50">
+                        <input type="number" step="0.01" min="0.01" id="movement-unit-price" class="w-full px-3 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-sm focus:ring-2 focus:ring-red-600 focus:outline-none font-bold text-white" placeholder="Ex: 4.50">
                     </div>
                 </div>
 
@@ -444,7 +444,10 @@
                 const data = await response.json();
                 
                 state.products = data.products || [];
-                state.movements = data.movements || [];
+                // Se o servidor retornar dados de histórico, carrega, mas preserva o array limpo se o usuário acabou de limpar
+                if (data.movements !== undefined) {
+                    state.movements = data.movements;
+                }
                 state.users = data.users || [];
                 
                 renderAll();
@@ -487,8 +490,6 @@
                 checkUserSession();
             });
             setupEventListeners();
-            
-            setInterval(loadDataFromServer, 5000);
         });
 
         function escapeHtml(text) {
@@ -512,7 +513,6 @@
                 authModal.classList.add('hidden');
                 authModal.classList.remove('flex');
 
-                // Exibe o botão de limpar histórico APENAS se for admin
                 if (clearHistoryBtn) {
                     if (state.currentUser.role === 'admin') {
                         clearHistoryBtn.classList.remove('hidden');
@@ -656,7 +656,7 @@
                 });
             });
 
-            // Evento do botão de limpar histórico (Restrito a Admin)
+            // Botão de Limpar Histórico Seguro para Admin
             if (clearHistoryBtn) {
                 clearHistoryBtn.addEventListener('click', () => {
                     if (!state.currentUser || state.currentUser.role !== 'admin') {
@@ -673,7 +673,7 @@
                             </div>
                             <div>
                                 <h3 class="text-lg font-bold text-white mb-1">Limpar Histórico Completo?</h3>
-                                <p class="text-sm text-neutral-400">Esta ação apagará todos os registros de movimentação e variação de preço. Deseja continuar?</p>
+                                <p class="text-sm text-neutral-400">Esta ação apagará todos os registros de movimentação e variação de preço permanentemente.</p>
                             </div>
                             <div class="flex space-x-3 pt-2">
                                 <button id="modal-cancel-clear" class="flex-1 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 font-semibold py-2.5 rounded-lg text-sm transition-colors">Cancelar</button>
@@ -693,8 +693,13 @@
                         overlay.classList.add('opacity-0');
                         setTimeout(() => overlay.remove(), 300);
 
+                        // Esvazia o array localmente
                         state.movements = [];
+                        
+                        // Salva imediatamente no backend/armazenamento
                         saveState();
+                        
+                        // Atualiza a tela
                         renderAll();
                         showToast('Histórico limpo com sucesso!', 'success');
                     });
@@ -738,6 +743,11 @@
                 const quantity = parseInt(document.getElementById('product-quantity').value);
                 const minStock = parseInt(document.getElementById('product-min-stock').value);
                 const userName = state.currentUser.name;
+
+                if (price <= 0) {
+                    showToast('O preço do produto deve ser maior que zero.', 'error');
+                    return;
+                }
 
                 if (id) {
                     const index = state.products.findIndex(p => p.id === id);
@@ -789,6 +799,11 @@
                 const product = state.products.find(p => p.id === productId);
                 if (!product) return;
 
+                if (type === 'ENTRADA' && (newPrice === null || newPrice <= 0)) {
+                    showToast('Informe um preço unitário válido maior que zero.', 'error');
+                    return;
+                }
+
                 if (type === 'SAIDA' && product.quantity < qty) {
                     showToast(`Quantidade insuficiente! Disponível: ${product.quantity}`, 'error');
                     return;
@@ -799,8 +814,9 @@
 
                 if (type === 'ENTRADA') {
                     product.quantity += qty;
-                    if (!isNaN(newPrice) && newPrice >= 0) {
+                    if (!isNaN(newPrice) && newPrice > 0) {
                         if (oldPrice > 0) {
+                            // Cálculo exato da variação percentual
                             priceVariationPercent = ((newPrice - oldPrice) / oldPrice) * 100;
                         }
                         product.price = newPrice;
@@ -1076,7 +1092,7 @@
                 let varHtml = '<span class="text-neutral-500 text-xs">0,0%</span>';
                 
                 if (oldPrice > 0 && newPrice > 0) {
-                    const varVal = ((newPrice - oldPrice) / oldPrice) * 100;
+                    const varVal = m.price_variation !== undefined ? m.price_variation : ((newPrice - oldPrice) / oldPrice) * 100;
                     const isUp = varVal > 0;
                     const badgeColor = isUp ? 'bg-red-950/80 border-red-900 text-red-400' : 'bg-emerald-950/80 border-emerald-900 text-emerald-400';
                     const icon = isUp ? '<i class="fa-solid fa-arrow-trend-up mr-1"></i>' : '<i class="fa-solid fa-arrow-trend-down mr-1"></i>';
