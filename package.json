@@ -4,8 +4,8 @@
   "description": "Controle de Estoque Colaborativo",
   "main": "server.js",
   "scripts": {
-  "start": "node --dns-result-order=ipv4first server.js"
-}
+    "start": "node server.js"
+  },
   "dependencies": {
     "bcrypt": "^6.0.0",
     "cors": "^2.8.6",
