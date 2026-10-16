@@ -12,7 +12,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'chave_secreta_padrao_para_desenvol
 app.use(express.json());
 app.use(cors());
 
-// Configuração do Banco de Dados PostgreSQL (Supabase / Vercel)
+// Configuração do Banco de Dados PostgreSQL (Render)
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: {
@@ -316,6 +316,7 @@ app.post('/api/sync', async (req, res) => {
                 }
             }
 
+            // CORREÇÃO: Limpa e sincroniza corretamente as movimentações (permite apagar o histórico de vez)
             if (movements !== undefined && Array.isArray(movements)) {
                 await client.query(`DELETE FROM movements`);
                 for (const m of movements) {
@@ -352,11 +353,6 @@ app.post('/api/sync', async (req, res) => {
     }
 });
 
-// Inicialização segura para Vercel e ambiente local
-if (process.env.NODE_ENV !== 'production') {
-    app.listen(PORT, () => {
-        console.log(`Servidor rodando localmente na porta ${PORT}`);
-    });
-}
-
-module.exports = app;
+app.listen(PORT, () => {
+    console.log(`Servidor rodando na porta ${PORT}`);
+});
