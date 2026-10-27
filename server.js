@@ -50,6 +50,7 @@ async function initDatabase() {
         await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS failed_login_attempts INT DEFAULT 0`);
         await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS lockout_until TIMESTAMP NULL`);
 
+        // Garante tabela products e sua chave primária explícita
         await pool.query(`CREATE TABLE IF NOT EXISTS products (
             id TEXT PRIMARY KEY,
             name TEXT,
@@ -60,7 +61,10 @@ async function initDatabase() {
             min_stock INTEGER,
             updated_at TEXT
         )`);
+        await pool.query(`ALTER TABLE products DROP CONSTRAINT IF EXISTS products_pkey;`).catch(() => {});
+        await pool.query(`ALTER TABLE products ADD PRIMARY KEY (id);`).catch(() => {});
 
+        // Garante tabela movements e sua chave primária explícita
         await pool.query(`CREATE TABLE IF NOT EXISTS movements (
             id TEXT PRIMARY KEY,
             product_id TEXT,
@@ -74,11 +78,14 @@ async function initDatabase() {
             user_name TEXT,
             date TEXT
         )`);
+        await pool.query(`ALTER TABLE movements DROP CONSTRAINT IF EXISTS movements_pkey;`).catch(() => {});
+        await pool.query(`ALTER TABLE movements ADD PRIMARY KEY (id);`).catch(() => {});
 
         await pool.query(`ALTER TABLE movements ADD COLUMN IF NOT EXISTS unit_price REAL`);
         await pool.query(`ALTER TABLE movements ADD COLUMN IF NOT EXISTS old_price REAL`);
         await pool.query(`ALTER TABLE movements ADD COLUMN IF NOT EXISTS price_variation REAL`);
 
+        // Garante tabela price_history e sua chave primária explícita
         await pool.query(`CREATE TABLE IF NOT EXISTS price_history (
             id TEXT PRIMARY KEY,
             product_id TEXT,
@@ -92,11 +99,15 @@ async function initDatabase() {
             user_name TEXT,
             date TEXT
         )`);
+        await pool.query(`ALTER TABLE price_history DROP CONSTRAINT IF EXISTS price_history_pkey;`).catch(() => {});
+        await pool.query(`ALTER TABLE price_history ADD PRIMARY KEY (id);`).catch(() => {});
 
         await pool.query(`CREATE TABLE IF NOT EXISTS app_settings (
             key TEXT PRIMARY KEY,
             value TEXT
         )`);
+        await pool.query(`ALTER TABLE app_settings DROP CONSTRAINT IF EXISTS app_settings_pkey;`).catch(() => {});
+        await pool.query(`ALTER TABLE app_settings ADD PRIMARY KEY (key);`).catch(() => {});
 
         const migrationClient = await pool.connect();
         try {
@@ -108,7 +119,6 @@ async function initDatabase() {
                  RETURNING key`
             );
             if (migration.rowCount > 0) {
-                // CORREÇÃO: Substituído ON CONFLICT por NOT IN para evitar erros de índice no banco novo
                 await migrationClient.query(
                     `INSERT INTO price_history (id, product_id, product_name, type, quantity, unit_price, old_price, price_variation, reason, user_name, date)
                      SELECT id, product_id, product_name, type, quantity, unit_price, old_price, price_variation, reason, user_name, date
@@ -146,7 +156,7 @@ async function initDatabase() {
             );
         }
         
-        console.log('Banco de dados PostgreSQL inicializado e usuários verificados/criados com sucesso.');
+        console.log('Banco de dados PostgreSQL inicializado e tabelas verificadas com sucesso.');
     } catch (err) {
         console.error('Erro ao inicializar o banco de dados:', err);
     }
