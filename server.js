@@ -76,25 +76,17 @@ async function initDatabase() {
             date TEXT
         )`);
         
-        // Garante primary key em movements se não houver
-        await pool.query(`
-            ALTER TABLE movements 
-            DROP CONSTRAINT IF EXISTS movements_pkey;
-        `).catch(() => {});
-        
-        await pool.query(`
-            ALTER TABLE movements 
-            ADD PRIMARY KEY (id);
-        `).catch(() => {});
+        await pool.query(`ALTER TABLE movements DROP CONSTRAINT IF EXISTS movements_pkey;`).catch(() => {});
+        await pool.query(`ALTER TABLE movements ADD PRIMARY KEY (id);`).catch(() => {});
 
         // Garante colunas de preço caso a tabela seja antiga
         await pool.query(`ALTER TABLE movements ADD COLUMN IF NOT EXISTS unit_price REAL`);
         await pool.query(`ALTER TABLE movements ADD COLUMN IF NOT EXISTS old_price REAL`);
         await pool.query(`ALTER TABLE movements ADD COLUMN IF NOT EXISTS price_variation REAL`);
 
-        // Criação e ajuste seguro para price_history
+        // Criação e ajuste seguro para price_history com PRIMARY KEY integrada
         await pool.query(`CREATE TABLE IF NOT EXISTS price_history (
-            id TEXT,
+            id TEXT PRIMARY KEY,
             product_id TEXT,
             product_name TEXT,
             type TEXT,
@@ -107,16 +99,8 @@ async function initDatabase() {
             date TEXT
         )`);
 
-        // Garante primary key em price_history obrigatória para o ON CONFLICT funcionar
-        await pool.query(`
-            ALTER TABLE price_history 
-            DROP CONSTRAINT IF EXISTS price_history_pkey;
-        `).catch(() => {});
-
-        await pool.query(`
-            ALTER TABLE price_history 
-            ADD PRIMARY KEY (id);
-        `).catch(() => {});
+        await pool.query(`ALTER TABLE price_history DROP CONSTRAINT IF EXISTS price_history_pkey;`).catch(() => {});
+        await pool.query(`ALTER TABLE price_history ADD PRIMARY KEY (id);`).catch(() => {});
 
         await pool.query(`CREATE TABLE IF NOT EXISTS app_settings (
             key TEXT PRIMARY KEY,
@@ -132,13 +116,15 @@ async function initDatabase() {
                  ON CONFLICT (key) DO NOTHING
                  RETURNING key`
             );
+            
             if (migration.rowCount > 0) {
+                // Migração segura sem depender de ON CONFLICT
                 await migrationClient.query(
                     `INSERT INTO price_history (id, product_id, product_name, type, quantity, unit_price, old_price, price_variation, reason, user_name, date)
                      SELECT id, product_id, product_name, type, quantity, unit_price, old_price, price_variation, reason, user_name, date
                      FROM movements
-                     WHERE type = 'ENTRADA'
-                     ON CONFLICT (id) DO NOTHING`
+                     WHERE type = 'ENTRADA' 
+                     AND id NOT IN (SELECT id FROM price_history)`
                 );
             }
             await migrationClient.query('COMMIT');
