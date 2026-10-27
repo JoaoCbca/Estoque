@@ -172,7 +172,8 @@ async function initDatabase() {
         
         console.log('Banco de dados PostgreSQL inicializado e usuários verificados/criados com sucesso.');
     } catch (err) {
-        console.error('Erro ao inicializar o banco de dados:', err);
+        console.error('DETALHE DO ERRO AO INICIALIZAR O BANCO:', err.message);
+        console.error('Stack trace:', err.stack);
         throw err;
     }
 }
