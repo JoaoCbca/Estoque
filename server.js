@@ -61,8 +61,9 @@ async function initDatabase() {
             updated_at TEXT
         )`);
 
+        // Criação e ajuste seguro para movements
         await pool.query(`CREATE TABLE IF NOT EXISTS movements (
-            id TEXT PRIMARY KEY,
+            id TEXT,
             product_id TEXT,
             product_name TEXT,
             type TEXT,
@@ -74,26 +75,26 @@ async function initDatabase() {
             user_name TEXT,
             date TEXT
         )`);
-
-        // Garante que movements tenha a constraint de PRIMARY KEY caso a tabela já existisse sem ela
+        
+        // Garante primary key em movements se não houver
         await pool.query(`
-            DO $$ 
-            BEGIN 
-                IF NOT EXISTS (
-                    SELECT 1 FROM pg_constraint WHERE conname = 'movements_pkey'
-                ) THEN 
-                    ALTER TABLE movements ADD CONSTRAINT movements_pkey PRIMARY KEY (id);
-                END IF; 
-            END $$;
-        `);
+            ALTER TABLE movements 
+            DROP CONSTRAINT IF EXISTS movements_pkey;
+        `).catch(() => {});
+        
+        await pool.query(`
+            ALTER TABLE movements 
+            ADD PRIMARY KEY (id);
+        `).catch(() => {});
 
-        // Garante colunas de preço no histórico caso a tabela seja antiga
+        // Garante colunas de preço caso a tabela seja antiga
         await pool.query(`ALTER TABLE movements ADD COLUMN IF NOT EXISTS unit_price REAL`);
         await pool.query(`ALTER TABLE movements ADD COLUMN IF NOT EXISTS old_price REAL`);
         await pool.query(`ALTER TABLE movements ADD COLUMN IF NOT EXISTS price_variation REAL`);
 
+        // Criação e ajuste seguro para price_history
         await pool.query(`CREATE TABLE IF NOT EXISTS price_history (
-            id TEXT PRIMARY KEY,
+            id TEXT,
             product_id TEXT,
             product_name TEXT,
             type TEXT,
@@ -106,17 +107,16 @@ async function initDatabase() {
             date TEXT
         )`);
 
-        // Garante que price_history tenha a constraint de PRIMARY KEY caso a tabela já existisse sem ela
+        // Garante primary key em price_history obrigatória para o ON CONFLICT funcionar
         await pool.query(`
-            DO $$ 
-            BEGIN 
-                IF NOT EXISTS (
-                    SELECT 1 FROM pg_constraint WHERE conname = 'price_history_pkey'
-                ) THEN 
-                    ALTER TABLE price_history ADD CONSTRAINT price_history_pkey PRIMARY KEY (id);
-                END IF; 
-            END $$;
-        `);
+            ALTER TABLE price_history 
+            DROP CONSTRAINT IF EXISTS price_history_pkey;
+        `).catch(() => {});
+
+        await pool.query(`
+            ALTER TABLE price_history 
+            ADD PRIMARY KEY (id);
+        `).catch(() => {});
 
         await pool.query(`CREATE TABLE IF NOT EXISTS app_settings (
             key TEXT PRIMARY KEY,
