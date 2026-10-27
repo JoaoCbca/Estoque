@@ -61,31 +61,7 @@ async function initDatabase() {
             updated_at TEXT
         )`);
 
-        // Criação e ajuste seguro para movements
         await pool.query(`CREATE TABLE IF NOT EXISTS movements (
-            id TEXT,
-            product_id TEXT,
-            product_name TEXT,
-            type TEXT,
-            quantity INTEGER,
-            unit_price REAL,
-            old_price REAL,
-            price_variation REAL,
-            reason TEXT,
-            user_name TEXT,
-            date TEXT
-        )`);
-        
-        await pool.query(`ALTER TABLE movements DROP CONSTRAINT IF EXISTS movements_pkey;`).catch(() => {});
-        await pool.query(`ALTER TABLE movements ADD PRIMARY KEY (id);`).catch(() => {});
-
-        // Garante colunas de preço caso a tabela seja antiga
-        await pool.query(`ALTER TABLE movements ADD COLUMN IF NOT EXISTS unit_price REAL`);
-        await pool.query(`ALTER TABLE movements ADD COLUMN IF NOT EXISTS old_price REAL`);
-        await pool.query(`ALTER TABLE movements ADD COLUMN IF NOT EXISTS price_variation REAL`);
-
-        // Criação e ajuste seguro para price_history com PRIMARY KEY integrada
-        await pool.query(`CREATE TABLE IF NOT EXISTS price_history (
             id TEXT PRIMARY KEY,
             product_id TEXT,
             product_name TEXT,
@@ -99,9 +75,24 @@ async function initDatabase() {
             date TEXT
         )`);
 
-        await pool.query(`ALTER TABLE price_history DROP CONSTRAINT IF EXISTS price_history_pkey;`).catch(() => {});
-        await pool.query(`ALTER TABLE price_history ADD PRIMARY KEY (id);`).catch(() => {});
+        // Garante colunas de preço no histórico caso a tabela seja antiga
+        await pool.query(`ALTER TABLE movements ADD COLUMN IF NOT EXISTS unit_price REAL`);
+        await pool.query(`ALTER TABLE movements ADD COLUMN IF NOT EXISTS old_price REAL`);
+        await pool.query(`ALTER TABLE movements ADD COLUMN IF NOT EXISTS price_variation REAL`);
 
+        await pool.query(`CREATE TABLE IF NOT EXISTS price_history (
+            id TEXT PRIMARY KEY,
+            product_id TEXT,
+            product_name TEXT,
+            type TEXT,
+            quantity INTEGER,
+            unit_price REAL,
+            old_price REAL,
+            price_variation REAL,
+            reason TEXT,
+            user_name TEXT,
+            date TEXT
+        )`);
         await pool.query(`CREATE TABLE IF NOT EXISTS app_settings (
             key TEXT PRIMARY KEY,
             value TEXT
@@ -116,15 +107,13 @@ async function initDatabase() {
                  ON CONFLICT (key) DO NOTHING
                  RETURNING key`
             );
-            
             if (migration.rowCount > 0) {
-                // Migração segura sem depender de ON CONFLICT
                 await migrationClient.query(
                     `INSERT INTO price_history (id, product_id, product_name, type, quantity, unit_price, old_price, price_variation, reason, user_name, date)
                      SELECT id, product_id, product_name, type, quantity, unit_price, old_price, price_variation, reason, user_name, date
                      FROM movements
-                     WHERE type = 'ENTRADA' 
-                     AND id NOT IN (SELECT id FROM price_history)`
+                     WHERE type = 'ENTRADA'
+                     ON CONFLICT (id) DO NOTHING`
                 );
             }
             await migrationClient.query('COMMIT');
@@ -158,11 +147,11 @@ async function initDatabase() {
         
         console.log('Banco de dados PostgreSQL inicializado e usuários verificados/criados com sucesso.');
     } catch (err) {
-        console.error('DETALHE DO ERRO AO INICIALIZAR O BANCO:', err.message);
-        console.error('Stack trace:', err.stack);
-        throw err;
+        console.error('Erro ao inicializar o banco de dados:', err);
     }
 }
+
+initDatabase();
 
 app.use(express.static(path.join(__dirname)));
 
@@ -327,23 +316,33 @@ app.post('/api/sync', async (req, res) => {
                 }
             }
 
+            // CORREÇÃO DA SINCRONIZAÇÃO: Usa upsert (ON CONFLICT) em vez de DELETE geral para evitar falhas de transação
             if (movements !== undefined && Array.isArray(movements)) {
-                await client.query(`DELETE FROM movements`);
                 for (const m of movements) {
                     await client.query(
                         `INSERT INTO movements (id, product_id, product_name, type, quantity, unit_price, old_price, price_variation, reason, user_name, date) 
-                         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+                         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+                         ON CONFLICT (id) DO UPDATE SET 
+                            quantity = EXCLUDED.quantity,
+                            unit_price = EXCLUDED.unit_price,
+                            old_price = EXCLUDED.old_price,
+                            price_variation = EXCLUDED.price_variation,
+                            reason = EXCLUDED.reason`,
                         [m.id, m.product_id, m.product_name, m.type, m.quantity, m.unit_price || 0, m.old_price || 0, m.price_variation || 0, m.reason, m.user_name, m.date]
                     );
                 }
             }
 
             if (priceHistory !== undefined && Array.isArray(priceHistory)) {
-                await client.query(`DELETE FROM price_history`);
                 for (const m of priceHistory) {
                     await client.query(
                         `INSERT INTO price_history (id, product_id, product_name, type, quantity, unit_price, old_price, price_variation, reason, user_name, date)
-                         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+                         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+                         ON CONFLICT (id) DO UPDATE SET 
+                            quantity = EXCLUDED.quantity,
+                            unit_price = EXCLUDED.unit_price,
+                            old_price = EXCLUDED.old_price,
+                            price_variation = EXCLUDED.price_variation`,
                         [m.id, m.product_id, m.product_name, m.type, m.quantity, m.unit_price || 0, m.old_price || 0, m.price_variation || 0, m.reason, m.user_name, m.date]
                     );
                 }
@@ -363,14 +362,6 @@ app.post('/api/sync', async (req, res) => {
     }
 });
 
-initDatabase()
-    .then(() => {
-        app.listen(PORT, () => {
-            console.log(`Servidor rodando na porta ${PORT}`);
-        });
-    })
-    .catch(async () => {
-        console.error('Servidor não iniciado porque o banco de dados não foi inicializado.');
-        await pool.end();
-        process.exitCode = 1;
-    });
+app.listen(PORT, () => {
+    console.log(`Servidor rodando na porta ${PORT}`);
+});
