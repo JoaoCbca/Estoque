@@ -316,7 +316,6 @@ app.post('/api/sync', async (req, res) => {
                 }
             }
 
-            // CORREÇÃO DA SINCRONIZAÇÃO: Usa upsert (ON CONFLICT) em vez de DELETE geral para evitar falhas de transação
             if (movements !== undefined && Array.isArray(movements)) {
                 for (const m of movements) {
                     await client.query(
@@ -352,8 +351,9 @@ app.post('/api/sync', async (req, res) => {
             res.json({ success: true });
         } catch (err) {
             await client.query('ROLLBACK');
-            console.error('Erro na transação de sync:', err);
-            res.status(500).json({ error: 'Erro ao sincronizar dados.' });
+            console.error('ERRO EXATO NO SYNC:', err.message);
+            console.error('Detalhe completo:', err);
+            res.status(500).json({ error: 'Erro ao sincronizar dados: ' + err.message });
         } finally {
             client.release();
         }
