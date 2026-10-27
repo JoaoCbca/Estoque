@@ -108,12 +108,13 @@ async function initDatabase() {
                  RETURNING key`
             );
             if (migration.rowCount > 0) {
+                // CORREÇÃO: Substituído ON CONFLICT por NOT IN para evitar erros de índice no banco novo
                 await migrationClient.query(
                     `INSERT INTO price_history (id, product_id, product_name, type, quantity, unit_price, old_price, price_variation, reason, user_name, date)
                      SELECT id, product_id, product_name, type, quantity, unit_price, old_price, price_variation, reason, user_name, date
                      FROM movements
                      WHERE type = 'ENTRADA'
-                     ON CONFLICT (id) DO NOTHING`
+                     AND id NOT IN (SELECT id FROM price_history)`
                 );
             }
             await migrationClient.query('COMMIT');
