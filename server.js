@@ -75,7 +75,6 @@ async function initDatabase() {
             date TEXT
         )`);
 
-        // Garante colunas de preço no histórico caso a tabela seja antiga
         await pool.query(`ALTER TABLE movements ADD COLUMN IF NOT EXISTS unit_price REAL`);
         await pool.query(`ALTER TABLE movements ADD COLUMN IF NOT EXISTS old_price REAL`);
         await pool.query(`ALTER TABLE movements ADD COLUMN IF NOT EXISTS price_variation REAL`);
@@ -93,6 +92,7 @@ async function initDatabase() {
             user_name TEXT,
             date TEXT
         )`);
+        
         await pool.query(`CREATE TABLE IF NOT EXISTS app_settings (
             key TEXT PRIMARY KEY,
             value TEXT
@@ -113,7 +113,7 @@ async function initDatabase() {
                      SELECT id, product_id, product_name, type, quantity, unit_price, old_price, price_variation, reason, user_name, date
                      FROM movements
                      WHERE type = 'ENTRADA'
-                     ON CONFLICT (id) DO NOTHING`
+                     AND id NOT IN (SELECT id FROM price_history)`
                 );
             }
             await migrationClient.query('COMMIT');
@@ -316,32 +316,25 @@ app.post('/api/sync', async (req, res) => {
                 }
             }
 
+            // Sincronização segura de movements (sem ON CONFLICT problemático)
             if (movements !== undefined && Array.isArray(movements)) {
+                await client.query(`DELETE FROM movements`);
                 for (const m of movements) {
                     await client.query(
                         `INSERT INTO movements (id, product_id, product_name, type, quantity, unit_price, old_price, price_variation, reason, user_name, date) 
-                         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-                         ON CONFLICT (id) DO UPDATE SET 
-                            quantity = EXCLUDED.quantity,
-                            unit_price = EXCLUDED.unit_price,
-                            old_price = EXCLUDED.old_price,
-                            price_variation = EXCLUDED.price_variation,
-                            reason = EXCLUDED.reason`,
+                         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
                         [m.id, m.product_id, m.product_name, m.type, m.quantity, m.unit_price || 0, m.old_price || 0, m.price_variation || 0, m.reason, m.user_name, m.date]
                     );
                 }
             }
 
+            // Sincronização segura de priceHistory (sem ON CONFLICT problemático)
             if (priceHistory !== undefined && Array.isArray(priceHistory)) {
+                await client.query(`DELETE FROM price_history`);
                 for (const m of priceHistory) {
                     await client.query(
                         `INSERT INTO price_history (id, product_id, product_name, type, quantity, unit_price, old_price, price_variation, reason, user_name, date)
-                         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-                         ON CONFLICT (id) DO UPDATE SET 
-                            quantity = EXCLUDED.quantity,
-                            unit_price = EXCLUDED.unit_price,
-                            old_price = EXCLUDED.old_price,
-                            price_variation = EXCLUDED.price_variation`,
+                         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
                         [m.id, m.product_id, m.product_name, m.type, m.quantity, m.unit_price || 0, m.old_price || 0, m.price_variation || 0, m.reason, m.user_name, m.date]
                     );
                 }
@@ -352,7 +345,6 @@ app.post('/api/sync', async (req, res) => {
         } catch (err) {
             await client.query('ROLLBACK');
             console.error('ERRO EXATO NO SYNC:', err.message);
-            console.error('Detalhe completo:', err);
             res.status(500).json({ error: 'Erro ao sincronizar dados: ' + err.message });
         } finally {
             client.release();
