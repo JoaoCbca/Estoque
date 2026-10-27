@@ -92,7 +92,7 @@ async function initDatabase() {
             user_name TEXT,
             date TEXT
         )`);
-        
+
         await pool.query(`CREATE TABLE IF NOT EXISTS app_settings (
             key TEXT PRIMARY KEY,
             value TEXT
@@ -113,7 +113,7 @@ async function initDatabase() {
                      SELECT id, product_id, product_name, type, quantity, unit_price, old_price, price_variation, reason, user_name, date
                      FROM movements
                      WHERE type = 'ENTRADA'
-                     AND id NOT IN (SELECT id FROM price_history)`
+                     ON CONFLICT (id) DO NOTHING`
                 );
             }
             await migrationClient.query('COMMIT');
@@ -316,7 +316,6 @@ app.post('/api/sync', async (req, res) => {
                 }
             }
 
-            // Sincronização segura de movements (sem ON CONFLICT problemático)
             if (movements !== undefined && Array.isArray(movements)) {
                 await client.query(`DELETE FROM movements`);
                 for (const m of movements) {
@@ -328,7 +327,6 @@ app.post('/api/sync', async (req, res) => {
                 }
             }
 
-            // Sincronização segura de priceHistory (sem ON CONFLICT problemático)
             if (priceHistory !== undefined && Array.isArray(priceHistory)) {
                 await client.query(`DELETE FROM price_history`);
                 for (const m of priceHistory) {
@@ -344,8 +342,8 @@ app.post('/api/sync', async (req, res) => {
             res.json({ success: true });
         } catch (err) {
             await client.query('ROLLBACK');
-            console.error('ERRO EXATO NO SYNC:', err.message);
-            res.status(500).json({ error: 'Erro ao sincronizar dados: ' + err.message });
+            console.error('Erro na transação de sync:', err);
+            res.status(500).json({ error: 'Erro ao sincronizar dados.' });
         } finally {
             client.release();
         }
