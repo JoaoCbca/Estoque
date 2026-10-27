@@ -148,10 +148,9 @@ async function initDatabase() {
         console.log('Banco de dados PostgreSQL inicializado e usuários verificados/criados com sucesso.');
     } catch (err) {
         console.error('Erro ao inicializar o banco de dados:', err);
+        throw err;
     }
 }
-
-initDatabase();
 
 app.use(express.static(path.join(__dirname)));
 
@@ -353,6 +352,14 @@ app.post('/api/sync', async (req, res) => {
     }
 });
 
-app.listen(PORT, () => {
-    console.log(`Servidor rodando na porta ${PORT}`);
-});
+initDatabase()
+    .then(() => {
+        app.listen(PORT, () => {
+            console.log(`Servidor rodando na porta ${PORT}`);
+        });
+    })
+    .catch(async () => {
+        console.error('Servidor não iniciado porque o banco de dados não foi inicializado.');
+        await pool.end();
+        process.exitCode = 1;
+    });
