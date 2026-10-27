@@ -75,6 +75,18 @@ async function initDatabase() {
             date TEXT
         )`);
 
+        // Garante que movements tenha a constraint de PRIMARY KEY caso a tabela já existisse sem ela
+        await pool.query(`
+            DO $$ 
+            BEGIN 
+                IF NOT EXISTS (
+                    SELECT 1 FROM pg_constraint WHERE conname = 'movements_pkey'
+                ) THEN 
+                    ALTER TABLE movements ADD CONSTRAINT movements_pkey PRIMARY KEY (id);
+                END IF; 
+            END $$;
+        `);
+
         // Garante colunas de preço no histórico caso a tabela seja antiga
         await pool.query(`ALTER TABLE movements ADD COLUMN IF NOT EXISTS unit_price REAL`);
         await pool.query(`ALTER TABLE movements ADD COLUMN IF NOT EXISTS old_price REAL`);
@@ -93,6 +105,19 @@ async function initDatabase() {
             user_name TEXT,
             date TEXT
         )`);
+
+        // Garante que price_history tenha a constraint de PRIMARY KEY caso a tabela já existisse sem ela
+        await pool.query(`
+            DO $$ 
+            BEGIN 
+                IF NOT EXISTS (
+                    SELECT 1 FROM pg_constraint WHERE conname = 'price_history_pkey'
+                ) THEN 
+                    ALTER TABLE price_history ADD CONSTRAINT price_history_pkey PRIMARY KEY (id);
+                END IF; 
+            END $$;
+        `);
+
         await pool.query(`CREATE TABLE IF NOT EXISTS app_settings (
             key TEXT PRIMARY KEY,
             value TEXT
@@ -315,7 +340,6 @@ app.post('/api/sync', async (req, res) => {
                 }
             }
 
-            // CORREÇÃO: Limpa e sincroniza corretamente as movimentações (permite apagar o histórico de vez)
             if (movements !== undefined && Array.isArray(movements)) {
                 await client.query(`DELETE FROM movements`);
                 for (const m of movements) {
